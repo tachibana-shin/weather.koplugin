@@ -14,12 +14,12 @@ local _ = require("weather_i18n")
 
 local Screen = Device.screen
 
--- Alert cards — extreme temperature warnings
-local function addAlert(self, h, label, bg_color, icon_color, text_color)
+-- Alert cards — extreme temperature + precipitation warnings
+local function addAlert(self, h, label, bg_color, icon_color, text_color, message)
     local cw, acw, card_r, card_p, gauges = h.cw, h.acw, h.card_r, h.card_p, h.gauges
     local cur = h.cur
     local is = Screen:scaleBySize(36)
-    local ah = Screen:scaleBySize(32)
+    local ah = Screen:scaleBySize(60)
     local al_left = HorizontalGroup:new { align = "center" }
     table.insert(al_left, FrameContainer:new {
         width = is, height = is,
@@ -40,12 +40,13 @@ local function addAlert(self, h, label, bg_color, icon_color, text_color)
         bold = true, fgcolor = Blitbuffer.COLOR_WHITE,
     })
     table.insert(at, TextWidget:new {
-        text = cur.location_name,
+        text = message or cur.location_name,
         face = Font:getFace("smallinfofont", 15), fgcolor = text_color,
+        max_width = acw - Screen:scaleBySize(70),
     })
     table.insert(al_left, at)
     self:add(FrameContainer:new {
-        width = cw, height = Screen:scaleBySize(52),
+        width = cw, height = Screen:scaleBySize(80),
         background = bg_color, radius = card_r,
         bordersize = 0, padding = card_p,
         OverlapGroup:new {
@@ -71,11 +72,19 @@ return function(h)
 
     if cur.temperature >= 35 then
         addAlert(h.self, h, _("Too hot"), h.gauges.rgb(180, 40, 40), h.gauges.rgb(220, 80, 80),
-            h.gauges.rgb(255, 180, 180))
+            h.gauges.rgb(255, 255, 255))
     end
 
     if cur.temperature <= 0 then
         addAlert(h.self, h, _("Too cold"), h.gauges.rgb(40, 40, 180), h.gauges.rgb(80, 80, 220),
-            h.gauges.rgb(180, 180, 255))
+            h.gauges.rgb(255, 255, 255))
+    end
+
+    if cur.precip_prediction then
+        local title = cur.precip_is_snow
+            and _("Snow will continue in the next few hours")
+            or _("Rain will continue in the next few hours")
+        addAlert(h.self, h, title, h.gauges.rgb(80, 140, 200), h.gauges.rgb(60, 100, 180),
+            h.gauges.rgb(255, 255, 255), cur.precip_prediction)
     end
 end

@@ -67,7 +67,7 @@ return function(h)
         text = string.format("%s %d°", _("Feels like"), math.floor(cur.apparent_temperature + 0.5)),
         face = Font:getFace("smallinfofont", 18), fgcolor = Blitbuffer.COLOR_DIM_GRAY,
     })
-    if cur.heat_index and cur.heat_index > 30 then
+    if cur.heat_index and cur.heat_index >= 30 then
         table.insert(rc, TextWidget:new {
             text = string.format("%s %d°C", _("Heat Index"), math.floor(cur.heat_index + 0.5)),
             face = Font:getFace("smallinfofont", 16), fgcolor = h.gauges.rgb(220, 80, 80),

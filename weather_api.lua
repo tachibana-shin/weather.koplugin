@@ -89,6 +89,65 @@ local function wind_chill(t_c, ws_kmh)
     return (WC_f - 32) * 5/9
 end
 
+local RAIN_CODES = {
+    [51]=true, [53]=true, [55]=true,
+    [56]=true, [57]=true,
+    [61]=true, [63]=true, [65]=true,
+    [66]=true, [67]=true,
+    [80]=true, [81]=true, [82]=true,
+    [95]=true, [96]=true, [99]=true,
+}
+
+local SNOW_CODES = {
+    [71]=true, [73]=true, [75]=true, [77]=true,
+    [85]=true, [86]=true,
+}
+
+local function is_light_precip(code)
+    return code == 51 or code == 53 or code == 55
+        or code == 56 or code == 57
+        or code == 61
+        or code == 71 or code == 77
+        or code == 80
+        or code == 85
+end
+
+local function rain_prediction(hourly)
+    if not hourly or #hourly == 0 then return nil end
+    local count = 0
+    local last_time = nil
+    local is_snow = false
+    local all_light = true
+    for _, h in ipairs(hourly) do
+        if RAIN_CODES[h.weather_code] or SNOW_CODES[h.weather_code] then
+            count = count + 1
+            last_time = h.time
+            if SNOW_CODES[h.weather_code] then is_snow = true end
+            if not is_light_precip(h.weather_code) then
+                all_light = false
+            end
+        else
+            break
+        end
+    end
+    if count == 0 then return nil, nil end
+    local label
+    if is_snow then
+        label = all_light and _("Slight snow") or _("Snow")
+    else
+        label = all_light and _("Slight rain") or _("Rain")
+    end
+    local text
+    if count == 1 then
+        text = string.format("%s %s", label, _("will stop soon"))
+    elseif count >= #hourly then
+        text = string.format("%s %s", label, _("will continue throughout the day"))
+    else
+        text = string.format("%s %s %s", label, _("will continue until"), last_time)
+    end
+    return text, is_snow
+end
+
 function M.uvLabel(index)
     if not index then return "?" end
     if index <= 2 then return _("Low")
@@ -254,6 +313,10 @@ function M.fetch(lat, lon, temp_unit, forecast_days)
                 end
             end
         end
+    end
+
+    if result.current and result.hourly then
+        result.current.precip_prediction, result.current.precip_is_snow = rain_prediction(result.hourly)
     end
 
     local daily = data.daily
