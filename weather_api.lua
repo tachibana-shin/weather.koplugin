@@ -59,6 +59,36 @@ function M.windDirectionLabel(degrees)
     return WIND_DIRS[index]
 end
 
+-- NOAA Heat Index: temperature (°C), relative humidity (%)
+local function heat_index(t_c, rh)
+    if not t_c or not rh then return nil end
+    local T = t_c * 9/5 + 32
+    local R = rh
+    local HI_f = 0.5 * (T + 61.0 + (T - 68.0) * 1.2 + R * 0.094)
+    if HI_f < 80 then
+        return (HI_f - 32) * 5/9
+    end
+    HI_f = -42.379 + 2.04901523*T + 10.14333127*R - 0.22475541*T*R
+         - 0.00683783*T*T - 0.05481717*R*R + 0.00122874*T*T*R
+         + 0.00085282*T*R*R - 0.00000199*T*T*R*R
+    if R < 13 and T >= 80 and T <= 112 then
+        HI_f = HI_f - ((13 - R) / 4) * math.sqrt((17 - math.abs(T - 95)) / 17)
+    elseif R > 85 and T >= 80 and T <= 87 then
+        HI_f = HI_f + ((R - 85) / 10) * ((87 - T) / 5)
+    end
+    return (HI_f - 32) * 5/9
+end
+
+-- NWS Wind Chill: temperature (°C), wind speed (km/h)
+local function wind_chill(t_c, ws_kmh)
+    if not t_c or not ws_kmh then return nil end
+    if t_c > 10 or ws_kmh < 4.8 then return t_c end
+    local T = t_c * 9/5 + 32
+    local V = ws_kmh / 1.609
+    local WC_f = 35.74 + 0.6215*T - 35.75*V^0.16 + 0.4275*T*V^0.16
+    return (WC_f - 32) * 5/9
+end
+
 function M.uvLabel(index)
     if not index then return "?" end
     if index <= 2 then return _("Low")
@@ -171,6 +201,18 @@ function M.fetch(lat, lon, temp_unit, forecast_days)
         }
         if not current.is_day or current.is_day == 0 then
             result.current.weather_icon = M.getNightIcon(result.current.weather_icon)
+        end
+
+        local hi = heat_index(current.temperature_2m, current.relative_humidity_2m)
+        local wc = wind_chill(current.temperature_2m, current.wind_speed_10m)
+        result.current.heat_index = hi
+        result.current.wind_chill = wc
+        if hi and hi >= 30 then
+            result.current.weather_icon = "very_hot"
+            result.current.weather_text = _("Too hot")
+        elseif wc and wc <= 0 then
+            result.current.weather_icon = "very_cold"
+            result.current.weather_text = _("Too cold")
         end
     end
 

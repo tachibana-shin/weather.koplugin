@@ -14,7 +14,7 @@ return function(h)
     self:add(CenterContainer:new {
         dimen = Geom:new { w = cw, h = Screen:scaleBySize(32) },
         TextWidget:new {
-            text = _("Google Weather"), face = Font:getFace("smallinfofont", 15),
+            text = _("Designed from Google Weather"), face = Font:getFace("smallinfofont", 15),
             fgcolor = Blitbuffer.COLOR_DIM_GRAY, underline = true,
         },
     })
