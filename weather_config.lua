@@ -24,10 +24,10 @@ local function loadFile()
     local content = f:read("*a")
     f:close()
     if content and #content > 0 then
-        local ok, chunk = load(content, path)
-        if ok then
-            local ok2, result = pcall(chunk)
-            if ok2 and type(result) == "table" then
+        local func = load(content, path)
+        if func then
+            local ok, result = pcall(func)
+            if ok and type(result) == "table" then
                 data = result
             end
         end
