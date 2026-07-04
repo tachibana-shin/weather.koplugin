@@ -1,0 +1,81 @@
+local Blitbuffer = require("ffi/blitbuffer")
+local CenterContainer = require("ui/widget/container/centercontainer")
+local Device = require("device")
+local Font = require("ui/font")
+local FrameContainer = require("ui/widget/container/framecontainer")
+local Geom = require("ui/geometry")
+local HorizontalGroup = require("ui/widget/horizontalgroup")
+local HorizontalSpan = require("ui/widget/horizontalspan")
+local OverlapGroup = require("ui/widget/overlapgroup")
+local RightContainer = require("ui/widget/container/rightcontainer")
+local TextWidget = require("ui/widget/textwidget")
+local VerticalGroup = require("ui/widget/verticalgroup")
+local _ = require("weather_i18n")
+
+local Screen = Device.screen
+
+-- Alert cards — extreme temperature warnings
+local function addAlert(self, h, label, bg_color, icon_color, text_color)
+    local cw, acw, card_r, card_p, gauges = h.cw, h.acw, h.card_r, h.card_p, h.gauges
+    local cur = h.cur
+    local is = Screen:scaleBySize(36)
+    local ah = Screen:scaleBySize(32)
+    local al_left = HorizontalGroup:new { align = "center" }
+    table.insert(al_left, FrameContainer:new {
+        width = is, height = is,
+        background = icon_color, radius = is / 2,
+        bordersize = 0, padding = 0,
+        CenterContainer:new {
+            dimen = Geom:new { w = is, h = is },
+            TextWidget:new {
+                text = "\u{26A0}", face = Font:getFace("smallinfofont", 22),
+                fgcolor = Blitbuffer.COLOR_WHITE,
+            },
+        },
+    })
+    table.insert(al_left, HorizontalSpan:new { width = Screen:scaleBySize(10) })
+    local at = VerticalGroup:new { align = "left" }
+    table.insert(at, TextWidget:new {
+        text = label, face = Font:getFace("infofont", 22),
+        bold = true, fgcolor = Blitbuffer.COLOR_WHITE,
+    })
+    table.insert(at, TextWidget:new {
+        text = cur.location_name,
+        face = Font:getFace("smallinfofont", 15), fgcolor = text_color,
+    })
+    table.insert(al_left, at)
+    self:add(FrameContainer:new {
+        width = cw, height = Screen:scaleBySize(52),
+        background = bg_color, radius = card_r,
+        bordersize = 0, padding = card_p,
+        OverlapGroup:new {
+            dimen = Geom:new { w = acw, h = ah },
+            al_left,
+            RightContainer:new {
+                dimen = Geom:new { w = acw, h = ah },
+                CenterContainer:new {
+                    dimen = Geom:new { w = Screen:scaleBySize(20), h = ah },
+                    TextWidget:new {
+                        text = ">", face = Font:getFace("infofont", 24),
+                        fgcolor = Blitbuffer.COLOR_WHITE,
+                    },
+                },
+            },
+        },
+    })
+end
+
+return function(h)
+    local cur = h.cur
+    if not cur.temperature then return end
+
+    if cur.temperature >= 35 then
+        addAlert(h.self, h, _("Too hot"), h.gauges.rgb(180, 40, 40), h.gauges.rgb(220, 80, 80),
+            h.gauges.rgb(255, 180, 180))
+    end
+
+    if cur.temperature <= 0 then
+        addAlert(h.self, h, _("Too cold"), h.gauges.rgb(40, 40, 180), h.gauges.rgb(80, 80, 220),
+            h.gauges.rgb(180, 180, 255))
+    end
+end

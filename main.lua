@@ -1,0 +1,304 @@
+local ButtonDialog = require("ui/widget/buttondialog")
+local InfoMessage = require("ui/widget/infomessage")
+local InputDialog = require("ui/widget/inputdialog")
+local UIManager = require("ui/uimanager")
+local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local _ = require("weather_i18n")
+local config = require("weather_config")
+local Dispatcher = require("dispatcher")
+
+local Weather = WidgetContainer:extend {
+    name = "weather",
+    is_doc_only = false,
+}
+
+function Weather:init()
+    self.ui.menu:registerToMainMenu(self)
+
+    Dispatcher:registerAction("weather_open", {
+        category = "none",
+        event = "WeatherOpen",
+        title = _("Open Weather"),
+        general = true,
+    })
+end
+
+function Weather:onWeatherOpen()
+    self:openWeatherView()
+end
+
+function Weather:getCoords()
+    local lat = config.get("weather_latitude")
+    local lon = config.get("weather_longitude")
+    if lat ~= nil and lon ~= nil then
+        return tonumber(lat), tonumber(lon)
+    end
+    return nil, nil
+end
+
+function Weather:getTempUnit()
+    return config.get("weather_temp_unit", "celsius")
+end
+
+function Weather:getForecastDays()
+    return config.get("weather_forecast_days", 7)
+end
+
+function Weather:getLocationName()
+    return config.get("weather_location_name")
+end
+
+function Weather:openWeatherView()
+    local lat, lon = self:getCoords()
+    if not lat or not lon then
+        UIManager:show(InfoMessage:new {
+            text = _("Please set your location first in Weather settings."),
+        })
+        return
+    end
+    local WeatherView = require("weather_view")
+    UIManager:show(WeatherView:new {
+        lat = lat,
+        lon = lon,
+        temp_unit = self:getTempUnit(),
+        forecast_days = self:getForecastDays(),
+        location_name = self:getLocationName(),
+    })
+end
+
+function Weather:showLocationSettings()
+    local cur_lat, cur_lon = self:getCoords()
+    local default_text = cur_lat and cur_lon
+        and string.format("%.4f, %.4f", cur_lat, cur_lon)
+        or ""
+    local dialog
+    dialog = InputDialog:new {
+        title = _("Set Location"),
+        input = default_text,
+        input_hint = _("Enter coordinates (lat, lon)"),
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local text = dialog:getInputText()
+                    local lat_str, lon_str = text:match("^%s*([+-]?[%d.]+)%s*[,;]%s*([+-]?[%d.]+)%s*$")
+                    if lat_str and lon_str then
+                        local lat = tonumber(lat_str)
+                        local lon = tonumber(lon_str)
+                        if lat and lon and lat >= -90 and lat <= 90 and lon >= -180 and lon <= 180 then
+                            config.set("weather_latitude", lat)
+                            config.set("weather_longitude", lon)
+                            -- Detect location name via reverse lookup (optional)
+                            self:detectLocationName(lat, lon)
+                            UIManager:close(dialog)
+                            UIManager:show(InfoMessage:new {
+                                text = string.format(_("Location saved: %.4f, %.4f"), lat, lon),
+                            })
+                            return
+                        end
+                    end
+                    UIManager:show(InfoMessage:new {
+                        text = _("Invalid coordinates"),
+                    })
+                end,
+            } },
+            { {
+                text = _("Auto Detect"),
+                callback = function()
+                    local msg = InfoMessage:new { text = _("Loading...") }
+                    UIManager:show(msg)
+                    local lat, lon, region, country
+                    local err
+                    local ok, http = pcall(require, "socket.http")
+                    if not ok then
+                        err = "no socket.http"
+                    else
+                        local body, code = http.request("http://ip-api.com/json/")
+                        if code == 200 and body then
+                            if not body:match('"status"%s*:%s*"success"') then
+                                err = "api status not success"
+                            else
+                                local lat_s = body:match('"lat"%s*:%s*([%d.-]+)')
+                                local lon_s = body:match('"lon"%s*:%s*([%d.-]+)')
+                                if lat_s and lon_s then
+                                    lat = tonumber(lat_s)
+                                    lon = tonumber(lon_s)
+                                    region = body:match('"regionName"%s*:%s*"([^"]*)"')
+                                    country = body:match('"country"%s*:%s*"([^"]*)"')
+                                else
+                                    err = "no lat/lon in response"
+                                end
+                            end
+                        else
+                            err = "HTTP " .. tostring(code or "?") .. " " .. tostring((body or ""):sub(1, 200))
+                        end
+                    end
+                    UIManager:close(msg)
+                    if lat and lon then
+                        local loc_str = string.format("%.4f, %.4f", lat, lon)
+                        local location_name
+                        if region and country then
+                            location_name = region .. ", " .. country
+                            loc_str = loc_str .. "\n" .. location_name
+                        end
+                        local confirm
+                        confirm = ButtonDialog:new {
+                            title = _("Confirm Location") .. "\n\n" .. loc_str,
+                            buttons = { {
+                                {
+                                    text = _("Save"),
+                                    callback = function()
+                                        config.set("weather_latitude", lat)
+                                        config.set("weather_longitude", lon)
+                                        if location_name then
+                                            config.set("weather_location_name", location_name)
+                                        end
+                                        UIManager:close(confirm)
+                                        UIManager:close(dialog)
+                                        UIManager:show(InfoMessage:new {
+                                            text = string.format(_("Location saved: %.4f, %.4f"), lat, lon),
+                                        })
+                                    end,
+                                },
+                                {
+                                    text = _("Cancel"),
+                                    callback = function()
+                                        UIManager:close(confirm)
+                                    end,
+                                },
+                            } },
+                        }
+                        UIManager:show(confirm)
+                    else
+                        UIManager:show(InfoMessage:new {
+                            text = _("Could not fetch weather data")
+                                .. "\n\n" .. (err or "?"),
+                        })
+                    end
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:detectLocationName(lat, lon)
+    local ok, http = pcall(require, "socket.http")
+    if not ok then return end
+    local url = string.format(
+        "https://geocoding-api.open-meteo.com/v1/search?name=%s,%s&count=1&language=en&format=json",
+        tostring(lat), tostring(lon))
+    local body, code = http.request(url)
+    if code == 200 and body then
+        local ok_json, JSON = pcall(require, "json")
+        if ok_json then
+            local ok_decode, data = pcall(JSON.decode, body)
+            if ok_decode and data and data.results and #data.results > 0 then
+                local result = data.results[1]
+                local parts = {}
+                if result.admin1 then table.insert(parts, result.admin1) end
+                if result.country then table.insert(parts, result.country) end
+                if #parts > 0 then
+                    config.set("weather_location_name", table.concat(parts, ", "))
+                end
+            end
+        end
+    end
+end
+
+function Weather:showSettings()
+    local dialog
+    local cur_unit = self:getTempUnit()
+    local cur_days = self:getForecastDays()
+
+    local unit_opts = {
+        {
+            text = (cur_unit == "celsius" and "● " or "  ") .. "°C",
+            callback = function()
+                config.set("weather_temp_unit", "celsius")
+                UIManager:close(dialog)
+                UIManager:show(InfoMessage:new { text = "°C" })
+            end,
+        },
+        {
+            text = (cur_unit == "fahrenheit" and "● " or "  ") .. "°F",
+            callback = function()
+                config.set("weather_temp_unit", "fahrenheit")
+                UIManager:close(dialog)
+                UIManager:show(InfoMessage:new { text = "°F" })
+            end,
+        },
+    }
+
+    local days_opts = {}
+    for __, d in ipairs({ 3, 7, 14 }) do
+        table.insert(days_opts, {
+            text = (cur_days == d and "● " or "  ") .. string.format(_("%d days"), d),
+            callback = function()
+                config.set("weather_forecast_days", d)
+                UIManager:close(dialog)
+                UIManager:show(InfoMessage:new { text = string.format(_("%d days"), d) })
+            end,
+        })
+    end
+
+    dialog = ButtonDialog:new {
+        title = _("Weather"),
+        buttons = {
+            unit_opts,
+            days_opts,
+            { {
+                text = _("Close"),
+                callback = function()
+                    UIManager:close(dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:addToMainMenu(menu_items)
+    menu_items.weather = {
+        text = "\u{2600} " .. _("Weather"),
+        sorting_hint = "tools",
+        sub_item_table = {
+            {
+                text = "\u{2600} " .. _("Open Weather"),
+                callback = function() self:openWeatherView() end,
+            },
+            {
+                text = "\u{F013} " .. _("Temperature Unit"),
+                keep_menu_open = true,
+                callback = function() self:showSettings() end,
+            },
+            {
+                text = "\u{F041} " .. _("Set Location"),
+                keep_menu_open = true,
+                callback = function() self:showLocationSettings() end,
+            },
+            {
+                text = "\u{F059} " .. _("About"),
+                keep_menu_open = true,
+                callback = function()
+                    local meta = require("weather_info")
+                    local text = meta.fullname .. "\n\n"
+                        .. _("Version") .. ": " .. (meta.version or "?") .. "\n"
+                        .. (meta.description or "") .. "\n\n"
+                        .. _("License") .. ": " .. (meta.license or "?") .. "\n"
+                        .. _("Author") .. ": " .. (meta.author or "?") .. "\n\n"
+                        .. (meta.url or "")
+                    UIManager:show(InfoMessage:new { text = text })
+                end,
+            },
+        },
+    }
+end
+
+return Weather
