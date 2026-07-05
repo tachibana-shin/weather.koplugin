@@ -30,6 +30,10 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 ## Providers
 - `providers/visualcrossing.lua` — Visual Crossing Weather API (`weather.visualcrossing.com`). Free tier: 1,000 records/day, need API key, ≤15 days forecast, no AQI. Single endpoint `/timeline/LAT,LON` returns `currentConditions` + `days[]` (each with `hours[]`). Icon names (Dark Sky style) mapped to set-4 via `VISUALCROSSING_ICONS`. Wind in km/h (metric), temp in °C (metric). WMO_MAP for precipitation icons → `rain_prediction`. Open-Meteo AQI fallback via `weather_api.lua`.
 
+## Provider recommendations (Asia)
+- **Recommended**: Tomorrow.io and WeatherAPI.com — best accuracy/coverage in Asia per user experience. WeatherAPI uses IBM/The Weather Channel data with strong Asian coverage; Tomorrow.io uses proprietary AI models with good global performance.
+- Open-Meteo (ECMWF official) is reliable but WeatherAPI/Tomorrow.io preferred for Asian locations.
+
 ## Styling conventions
 - `snake_case` for locals and functions, `camelCase` for methods/widget members
 - `Screen:scaleBySize()` for all sizing (never hardcode pixels)

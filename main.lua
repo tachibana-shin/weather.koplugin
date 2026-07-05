@@ -394,16 +394,14 @@ function Weather:showProviderSettings()
         title = _("Weather Provider"),
         buttons = {
             { {
-                text = (cur == "openmeteo" and "● " or "  ") .. "Open-Meteo"
-                    .. "\n" .. _("Free, no key needed, 7–14 days, AQI + pollen"),
+                text = (cur == "openmeteo" and "● " or "  ") .. "Open-Meteo",
                 callback = function()
                     config.set("weather_provider", "openmeteo")
                     UIManager:close(dialog)
                 end,
             } },
             { {
-                text = (cur == "weatherapi" and "● " or "  ") .. "WeatherAPI.com"
-                    .. "\n" .. _("Free tier, need API key, ≤14 days, AQI"),
+                text = (cur == "weatherapi" and "● " or "  ") .. "WeatherAPI.com",
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_weatherapi_key", "")
@@ -415,8 +413,7 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = (cur == "iqair" and "● " or "  ") .. "IQAir"
-                    .. "\n" .. _("Free tier, need API key, current only, AQI"),
+                text = (cur == "iqair" and "● " or "  ") .. "IQAir",
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_iqair_key", "")
@@ -428,8 +425,7 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = (cur == "tomorrowio" and "● " or "  ") .. "Tomorrow.io"
-                    .. "\n" .. _("Free tier, need API key, 5 days, no AQI"),
+                text = (cur == "tomorrowio" and "● " or "  ") .. "Tomorrow.io",
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_tomorrowio_key", "")
@@ -441,8 +437,7 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = (cur == "weatherbit" and "● " or "  ") .. "Weatherbit"
-                    .. "\n" .. _("Free tier, need API key, ≤16 days, AQI"),
+                text = (cur == "weatherbit" and "● " or "  ") .. "Weatherbit",
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_weatherbit_key", "")
@@ -454,8 +449,7 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = (cur == "visualcrossing" and "● " or "  ") .. "Visual Crossing"
-                    .. "\n" .. _("Free tier, need API key, ≤15 days, no AQI"),
+                text = (cur == "visualcrossing" and "● " or "  ") .. "Visual Crossing",
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_visualcrossing_key", "")
@@ -464,6 +458,13 @@ function Weather:showProviderSettings()
                     else
                         self:promptVisualCrossingKey()
                     end
+                end,
+            } },
+            { {
+                text = _("Help me choose"),
+                callback = function()
+                    UIManager:close(dialog)
+                    self:showProviderHelp()
                 end,
             } },
             { {
@@ -785,6 +786,25 @@ function Weather:promptVisualCrossingKey()
         },
     }
     UIManager:show(input_dialog)
+end
+
+function Weather:showProviderHelp()
+    local text = _("Region recommendations:") .. "\n"
+        .. _("• Asia (SEA, East Asia): WeatherAPI.com or Tomorrow.io — best coverage/accuracy per user experience. Open-Meteo (ECMWF) also good for tropical rainfall.") .. "\n"
+        .. _("• Europe: Open-Meteo (uses European national models) or WeatherAPI.com.") .. "\n"
+        .. _("• North America: All providers work well.") .. "\n"
+        .. _("• Global: WeatherAPI.com (most free calls: 1M/month) or Open-Meteo (free, no key, 10K calls/day).") .. "\n"
+        .. _("Provider overview:") .. "\n"
+        .. _("• Open-Meteo: Free, no key, ECMWF data, 16 days, AQI/pollen. Best for hobby, no-registration.") .. "\n"
+        .. _("• WeatherAPI.com: 1M calls/month free, 14 days, AQI, strong Asian coverage (IBM Weather).") .. "\n"
+        .. _("• IQAir: 500 calls/day, current weather only, best-in-class AQI.") .. "\n"
+        .. _("• Tomorrow.io: 500 calls/day, 5 days free, hyper-local AI models, no AQI on free.") .. "\n"
+        .. _("• Weatherbit: 500 calls/day, 16 days, AQI included, good for data science.") .. "\n"
+        .. _("• Visual Crossing: 1K records/day, 15 days, strong historical data, no AQI.") .. "\n"
+        .. _("Tips:") .. "\n"
+        .. _("• Providers with API keys also unlock a \"Refresh\" button on the weather screen.") .. "\n"
+        .. _("• AQI is automatically supplemented by Open-Meteo's free air quality API regardless of provider.")
+    UIManager:show(InfoMessage:new { text = text })
 end
 
 function Weather:addToMainMenu(menu_items)
