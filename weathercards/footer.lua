@@ -14,6 +14,7 @@ local PROVIDER_NAMES = {
     weatherapi = "WeatherAPI.com",
     iqair = "IQAir",
     tomorrowio = "Tomorrow.io",
+    weatherbit = "Weatherbit",
 }
 
 -- Footer — credit line

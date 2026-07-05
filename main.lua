@@ -441,6 +441,19 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
+                text = (cur == "weatherbit" and "● " or "  ") .. "Weatherbit"
+                    .. "\n" .. _("Free tier, need API key, ≤16 days, AQI"),
+                callback = function()
+                    UIManager:close(dialog)
+                    local key = config.get("weather_weatherbit_key", "")
+                    if key and key ~= "" then
+                        self:validateAndSwitchWeatherbit(key)
+                    else
+                        self:promptWeatherbitKey()
+                    end
+                end,
+            } },
+            { {
                 text = _("Back"),
                 is_enter_default = true,
                 callback = function()
@@ -622,6 +635,68 @@ function Weather:promptTomorrowIOKey()
                     local key = input_dialog:getInputText()
                     UIManager:close(input_dialog)
                     self:validateAndSwitchTomorrowIO(key)
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(input_dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(input_dialog)
+end
+
+function Weather:validateAndSwitchWeatherbit(key)
+    Trapper:wrap(function()
+        if not Trapper:info(_("Validating...")) then return end
+        local ok, http = pcall(require, "socket.http")
+        if not ok then
+            Trapper:clear()
+            UIManager:show(InfoMessage:new {
+                text = _("HTTP module not available"),
+            })
+            return
+        end
+        local url = "https://api.weatherbit.io/v2.0/current"
+            .. "?lat=21&lon=105"
+            .. "&key=" .. key
+            .. "&units=M"
+        local body, code = http.request(url)
+        Trapper:clear()
+        if code == 200 and body then
+            local ok_json, JSON = pcall(require, "json")
+            if ok_json then
+                local ok_decode, data = pcall(JSON.decode, body)
+                if ok_decode and data and data.data and #data.data > 0 then
+                    config.set("weather_weatherbit_key", key)
+                    config.set("weather_provider", "weatherbit")
+                    UIManager:show(InfoMessage:new {
+                        text = _("Weatherbit key validated"),
+                    })
+                    return
+                end
+            end
+        end
+        UIManager:show(InfoMessage:new {
+            text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+        })
+    end)
+end
+
+function Weather:promptWeatherbitKey()
+    local input_dialog
+    input_dialog = InputDialog:new {
+        title = _("Weatherbit API Key"),
+        input = "",
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local key = input_dialog:getInputText()
+                    UIManager:close(input_dialog)
+                    self:validateAndSwitchWeatherbit(key)
                 end,
             } },
             { {

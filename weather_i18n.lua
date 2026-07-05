@@ -170,6 +170,10 @@ t.vi = {
     ["Free tier, need API key, ≤14 days, AQI"] = "Gói miễn phí, cần API key, ≤14 ngày, AQI",
     ["Free tier, need API key, current only, AQI"] = "Gói miễn phí, cần API key, chỉ hiện tại, AQI",
     ["Free tier, need API key, 5 days, no AQI"] = "Gói miễn phí, cần API key, 5 ngày, không AQI",
+    ["Free tier, need API key, ≤16 days, AQI"] = "Gói miễn phí, cần API key, ≤16 ngày, AQI",
+    ["Weatherbit API Key"] = "Khóa API Weatherbit",
+    ["Weatherbit key validated"] = "Khóa API Weatherbit hợp lệ",
+    ["Weatherbit API key not set"] = "Chưa đặt khóa API Weatherbit",
 }
 
 t.zh = {
@@ -271,6 +275,10 @@ t.zh = {
     ["Free tier, need API key, ≤14 days, AQI"] = "免费版，需要API密钥，≤14天，AQI",
     ["Free tier, need API key, current only, AQI"] = "免费版，需要API密钥，仅当前，AQI",
     ["Free tier, need API key, 5 days, no AQI"] = "免费版，需要API密钥，5天，无AQI",
+    ["Free tier, need API key, ≤16 days, AQI"] = "免费版，需要API密钥，≤16天，AQI",
+    ["Weatherbit API Key"] = "Weatherbit API密钥",
+    ["Weatherbit key validated"] = "Weatherbit密钥已验证",
+    ["Weatherbit API key not set"] = "未设置Weatherbit密钥",
 }
 
 t.ja = {
@@ -372,6 +380,10 @@ t.ja = {
     ["Free tier, need API key, ≤14 days, AQI"] = "無料枠、APIキー必要、最大14日、AQI",
     ["Free tier, need API key, current only, AQI"] = "無料枠、APIキー必要、現在のみ、AQI",
     ["Free tier, need API key, 5 days, no AQI"] = "無料枠、APIキー必要、5日間、AQIなし",
+    ["Free tier, need API key, ≤16 days, AQI"] = "無料枠、APIキー必要、最大16日、AQI",
+    ["Weatherbit API Key"] = "Weatherbit APIキー",
+    ["Weatherbit key validated"] = "Weatherbitキーが確認されました",
+    ["Weatherbit API key not set"] = "Weatherbitキーが設定されていません",
 }
 
 local function lookup(key)

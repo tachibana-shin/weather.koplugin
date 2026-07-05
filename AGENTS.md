@@ -25,6 +25,7 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 ## Lua constraints (5.1)
 - No trailing commas in function call arguments (`f(1, 2,)` → syntax error)
 - No `continue`; use `goto` or restructure
+- **`_` is reserved for gettext** (`local _ = require("weather_i18n")`). Never use `_` as a for-loop placeholder — use `__` instead, or `_` will be shadowed by a number and `_("...")` will crash with "attempt to call a number value".
 
 ## Styling conventions
 - `snake_case` for locals and functions, `camelCase` for methods/widget members
