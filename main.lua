@@ -23,6 +23,22 @@ function Weather:init()
     })
 end
 
+local broadcastEventOrigin = UIManager.broadcastEvent
+function UIManager:broadcastEvent(event, ...)
+    broadcastEventOrigin(self, event, ...)
+    if Weather[event.handler] then
+        Weather[event.handler](Weather)
+    end
+    if event.handler == "onZenUIReady" then
+        UIManager.broadcastEvent = broadcastEventOrigin
+    end
+end
+
+function Weather:onZenUIReady()
+    if not _G.__ZEN_UI_REGISTER_STATUS_ITEM then return end
+    require("weather_statusline").registerZenUI()
+end
+
 function Weather:onWeatherOpen()
     self:openWeatherView()
 end
@@ -282,6 +298,13 @@ function Weather:addToMainMenu(menu_items)
                 text = "\u{F041} " .. _("Set Location"),
                 keep_menu_open = true,
                 callback = function() self:showLocationSettings() end,
+            },
+            {
+                text = _("Status Line"),
+                keep_menu_open = true,
+                callback = function()
+                    require("weather_statusline").showSettings()
+                end,
             },
             {
                 text = "\u{F059} " .. _("About"),

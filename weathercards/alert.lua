@@ -23,7 +23,7 @@ local function addAlert(self, h, label, bg_color, icon_color, text_color, messag
     local al_left = HorizontalGroup:new { align = "center" }
     table.insert(al_left, FrameContainer:new {
         width = is, height = is,
-        background = icon_color, radius = is / 2,
+        background = icon_color, radius = is * 2 / 3,
         bordersize = 0, padding = 0,
         CenterContainer:new {
             dimen = Geom:new { w = is, h = is },
@@ -70,14 +70,14 @@ return function(h)
     local cur = h.cur
     if not cur.temperature then return end
 
-    if cur.temperature >= 35 then
+    if cur.heat_index >= 30 or cur.temperature >= 30 then
         addAlert(h.self, h, _("Too hot"), h.gauges.rgb(180, 40, 40), h.gauges.rgb(220, 80, 80),
-            h.gauges.rgb(255, 255, 255))
+            h.gauges.rgb(255, 255, 255), string.format("%s %d°", _("Heat Index"), math.floor(cur.heat_index + 0.5)))
     end
 
-    if cur.temperature <= 0 then
+    if cur.temperature <= 0 or cur.heat_index <= 0 then
         addAlert(h.self, h, _("Too cold"), h.gauges.rgb(40, 40, 180), h.gauges.rgb(80, 80, 220),
-            h.gauges.rgb(255, 255, 255))
+            h.gauges.rgb(255, 255, 255), string.format("%s %d°", _("Wind Chill"), math.floor(cur.wind_chill + 0.5)))
     end
 
     if cur.precip_prediction then

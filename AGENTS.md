@@ -5,10 +5,12 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 
 ## Key structure
 - `main.lua` — Plugin entrypoint (`WidgetContainer:extend`), menu registration, dispatcher
-- `weatherview.lua` (~1300 lines) — Full-screen `FocusManager` widget, all UI layout + rendering
-- `weatherapi.lua` — Open-Meteo API client, WMO→icon mapping, response parsing
-- `config.lua` — Auto-persisting key-value store (writes `weather_settings.lua` next to plugin dir)
-- `i18n.lua` — Translations (`vi`, `zh`, `ja`) with `gettext` fallback
+- `weather_view.lua` — Full-screen `FocusManager` widget, all UI layout + rendering
+- `weather_api.lua` — Open-Meteo API client, WMO→icon mapping, response parsing
+- `weather_config.lua` — Auto-persisting key-value store (writes `weather_settings.lua` next to plugin dir)
+- `weather_i18n.lua` — Translations (`vi`, `zh`, `ja`) with `gettext` fallback
+- `statusline.lua` — Configurable status line for KOReader reader footer (same pattern as lunar.koplugin's statusline)
+- `weathercards/` — Individual card modules for the full-screen weather view
 - `resources/google-weather/*.svg` — 23 weather condition icons (48×48, no `<text>`/`<defs>`/`<linearGradient>`)
 - `resources/arrow_*.svg` — 8 wind direction arrows
 

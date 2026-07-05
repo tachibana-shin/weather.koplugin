@@ -140,6 +140,7 @@ function WeatherView:fetchWeather()
         return
     end
     self:displayWeather(data)
+    require("weather_statusline").updateCache(data, self.temp_unit)
 end
 
 function WeatherView:displayError(msg)
