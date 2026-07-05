@@ -379,11 +379,76 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
     result.timezone = data.timezone
     result.timezone_abbr = data.timezone_abbreviation
 
+    -- Fetch air quality data
+    local aqi_params = {
+        "european_aqi",
+        "european_aqi_pm2_5", "european_aqi_pm10",
+        "european_aqi_nitrogen_dioxide",
+        "european_aqi_ozone", "european_aqi_sulphur_dioxide",
+        "pm2_5", "pm10", "nitrogen_dioxide", "ozone", "sulphur_dioxide",
+        "carbon_monoxide", "dust", "ammonia", "aerosol_optical_depth",
+        "alder_pollen", "birch_pollen", "grass_pollen",
+        "mugwort_pollen", "olive_pollen", "ragweed_pollen",
+    }
+    local aqi_url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+        .. "?latitude=" .. tostring(lat)
+        .. "&longitude=" .. tostring(lon)
+        .. "&current=" .. urlencode(table.concat(aqi_params, ","))
+    local aqi_body, aqi_code = http.request(aqi_url)
+    if aqi_code == 200 and aqi_body and #aqi_body > 0 then
+        local ok_aqi_decode, aqi_data = pcall(JSON.decode, aqi_body)
+        if ok_aqi_decode and aqi_data and aqi_data.current then
+            local c = aqi_data.current
+            result.air_quality = {
+                aqi = c.european_aqi,
+                components = {
+                    pm2_5 = { aqi = c.european_aqi_pm2_5, raw = c.pm2_5 },
+                    pm10  = { aqi = c.european_aqi_pm10,  raw = c.pm10 },
+                    no2   = { aqi = c.european_aqi_nitrogen_dioxide, raw = c.nitrogen_dioxide },
+                    o3    = { aqi = c.european_aqi_ozone, raw = c.ozone },
+                    so2   = { aqi = c.european_aqi_sulphur_dioxide, raw = c.sulphur_dioxide },
+                },
+                pollutants = {
+                    co = c.carbon_monoxide,
+                    dust = c.dust,
+                    ammonia = c.ammonia,
+                    aerosol_optical_depth = c.aerosol_optical_depth,
+                },
+                pollen = {
+                    alder = c.alder_pollen,
+                    birch = c.birch_pollen,
+                    grass = c.grass_pollen,
+                    mugwort = c.mugwort_pollen,
+                    olive = c.olive_pollen,
+                    ragweed = c.ragweed_pollen,
+                },
+            }
+        end
+    end
+
     return result, nil
 end
 
 local WIND_LABELS = { kmh = "km/h", ms = "m/s", mph = "mph", knots = "knots" }
 local PRESSURE_LABELS = { hPa = "hPa", inHg = "inHg", mmHg = "mmHg" }
+local AQI_COLORS = {
+    { max = 20,  label = _("Very Low"),   r = 89,  g = 185, b = 89  },
+    { max = 40,  label = _("Low"),        r = 157, g = 202, b = 75  },
+    { max = 60,  label = _("Medium"),     r = 255, g = 210, b = 67  },
+    { max = 80,  label = _("High"),       r = 255, g = 155, b = 67  },
+    { max = 100, label = _("Very High"),  r = 220, g = 70,  b = 70  },
+    { max = nil, label = _("Extreme"),    r = 170, g = 50,  b = 50  },
+}
+
+function M.aqiLabel(aqi)
+    if not aqi then return _("N/A"), 200, 200, 200 end
+    for __, entry in ipairs(AQI_COLORS) do
+        if aqi <= (entry.max or math.huge) then
+            return entry.label, entry.r, entry.g, entry.b
+        end
+    end
+    return _("Extreme"), 170, 50, 50
+end
 
 function M.windUnitLabel()
     return WIND_LABELS[config.get("weather_wind_unit", "kmh")] or "km/h"

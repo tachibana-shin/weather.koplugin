@@ -62,7 +62,7 @@ return function(WeatherView, gauges)
 
         local blocks = {
             "header", "alert", "hourlyforecast", "dailyforecast",
-            "metricsgrid", "suncycle", "hourlydetail", "footer",
+            "airquality", "metricsgrid", "suncycle", "hourlydetail", "footer",
         }
         for _, name in ipairs(blocks) do
             require("weathercards/" .. name)(helpers)

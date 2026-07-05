@@ -151,6 +151,7 @@ t.vi = {
     Temperature = "Nhiệt độ",
     Icon = "Biểu tượng",
     Units = "Đơn vị",
+    ["EC AQI by pollutant"] = "EC AQI theo chất ô nhiễm",
 }
 
 t.zh = {
@@ -233,6 +234,7 @@ t.zh = {
     ["Location saved: %.4f, %.4f"] = "位置已保存: %.4f, %.4f",
     ["Please set your location first in Weather settings."] = "请先在天气设置中设置位置。",
     Version = "版本",
+    ["EC AQI by pollutant"] = "各污染物EC AQI",
 }
 
 t.ja = {
@@ -315,6 +317,7 @@ t.ja = {
     ["Location saved: %.4f, %.4f"] = "場所を保存しました: %.4f, %.4f",
     ["Please set your location first in Weather settings."] = "天気設定で最初に場所を設定してください。",
     Version = "バージョン",
+    ["EC AQI by pollutant"] = "汚染物質別EC AQI",
 }
 
 local function lookup(key)
