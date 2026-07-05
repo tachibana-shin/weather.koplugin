@@ -33,7 +33,7 @@ return function(WeatherView, gauges)
         }
     end
 
-    function WeatherView:displayWeather(data)
+    function WeatherView:displayWeather(data, cached)
         if not data then return end
         self:buildLayout()
         if not data.current then return end
@@ -41,6 +41,8 @@ return function(WeatherView, gauges)
         local sw = Screen:getWidth()
         local cw = sw - 2 * self.pad
         local acw = cw - 2 * card_p
+
+        local cache_age = cached and api.cacheAge()
 
         local helpers = {
             self = self,
@@ -54,6 +56,8 @@ return function(WeatherView, gauges)
             gauges = gauges,
             api = api,
             plugin_dir = plugin_dir,
+            cached = cached,
+            cache_age = cache_age,
         }
 
         local blocks = {

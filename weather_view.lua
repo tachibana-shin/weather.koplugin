@@ -48,6 +48,7 @@ function WeatherView:init()
     local sh = Screen:getHeight()
     self.dimen = Geom:new { x = 0, y = 0, w = sw, h = sh }
     self.covers_fullscreen = true
+    self.refresh_interval = config.get("weather_refresh_interval", 0)
     if Device:hasKeys() then
         self.key_events.Close = { { Input.group.Back } }
     end
@@ -60,6 +61,24 @@ function WeatherView:init()
     self:showLoading()
     self:buildLayout()
     self:fetchWeather()
+end
+
+function WeatherView:scheduleRefresh()
+    if self.refresh_interval and self.refresh_interval > 0 then
+        UIManager:scheduleIn(self.refresh_interval * 60, self.onRefreshTimer, self)
+    end
+end
+
+function WeatherView:onRefreshTimer()
+    local Trapper = require("ui/trapper")
+    Trapper:wrap(function()
+        if not Trapper:info(_("Refreshing...")) then return end
+        self:fetchWeather()
+    end)
+end
+
+function WeatherView:unscheduleRefresh()
+    UIManager:unschedule(self.onRefreshTimer)
 end
 
 function WeatherView:showLoading()
@@ -196,12 +215,20 @@ function WeatherView:fetchWeather()
         return
     end
     local data, err = api.fetch(self.lat, self.lon, self.temp_unit, self.forecast_days, config.get("weather_wind_unit", "kmh"), config.get("weather_precip_unit", "mm"))
-    if not data then
-        self:displayError(err or _("Could not fetch weather data"))
-        return
+    if data then
+        api.cacheSave(data)
+        self:displayWeather(data, false)
+        require("weather_statusline").updateCache(data, self.temp_unit)
+    else
+        local cached = api.cacheLoad()
+        if cached then
+            self:displayWeather(cached, true)
+            require("weather_statusline").updateCache(cached, self.temp_unit)
+        else
+            self:displayError(err or _("Could not fetch weather data"))
+        end
     end
-    self:displayWeather(data)
-    require("weather_statusline").updateCache(data, self.temp_unit)
+    self:scheduleRefresh()
 end
 
 function WeatherView:displayError(msg)
@@ -374,6 +401,7 @@ function WeatherView:onSwipe(_, ges_ev)
 end
 
 function WeatherView:onClose()
+    self:unscheduleRefresh()
     UIManager:close(self)
     UIManager:setDirty(nil, "full")
     if self.close_callback then

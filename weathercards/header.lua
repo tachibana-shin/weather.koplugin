@@ -87,5 +87,19 @@ return function(h)
             rc,
         },
     })
+    if h.cached and h.cache_age then
+        local mins = math.floor(h.cache_age / 60)
+        local cached_text
+        if mins < 60 then
+            cached_text = string.format(_("Cached %d min ago"), mins)
+        else
+            cached_text = string.format(_("Cached %d hour ago"), math.floor(mins / 60))
+        end
+        table.insert(hero, TextWidget:new {
+            text = cached_text,
+            face = Font:getFace("smallinfofont", 14),
+            fgcolor = Blitbuffer.COLOR_DIM_GRAY,
+        })
+    end
     self:add(h.card(hero))
 end

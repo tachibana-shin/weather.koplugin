@@ -416,4 +416,45 @@ function M.pressureConvert(hpa)
     return hpa
 end
 
+local DataStorage = require("datastorage")
+local cache_file = DataStorage:getDataDir() .. "/weather_cache.json"
+
+function M.cacheSave(data)
+    local ok, JSON = pcall(require, "json")
+    if not ok then return end
+    data._cached_at = os.time()
+    local ok_encode, str = pcall(JSON.encode, data)
+    if not ok_encode or not str then return end
+    local f = io.open(cache_file, "w")
+    if not f then return end
+    f:write(str)
+    f:close()
+end
+
+function M.cacheLoad()
+    local f = io.open(cache_file, "r")
+    if not f then return nil end
+    local str = f:read("*a")
+    f:close()
+    if not str or #str == 0 then return nil end
+    local ok, JSON = pcall(require, "json")
+    if not ok then return nil end
+    local ok_decode, data = pcall(JSON.decode, str)
+    if not ok_decode or not data then return nil end
+    return data
+end
+
+function M.cacheAge()
+    local f = io.open(cache_file, "r")
+    if not f then return nil end
+    local str = f:read("*a")
+    f:close()
+    if not str or #str == 0 then return nil end
+    local ok, JSON = pcall(require, "json")
+    if not ok then return nil end
+    local ok_decode, data = pcall(JSON.decode, str)
+    if not ok_decode or not data or not data._cached_at then return nil end
+    return os.difftime(os.time(), data._cached_at)
+end
+
 return M

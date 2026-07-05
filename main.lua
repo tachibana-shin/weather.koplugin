@@ -230,52 +230,150 @@ end
 
 function Weather:showSettings()
     local dialog
-    local cur_unit = self:getTempUnit()
-    local cur_days = self:getForecastDays()
-
-    local unit_opts = {
-        {
-            text = (cur_unit == "celsius" and "● " or "  ") .. "°C",
-            callback = function()
-                config.set("weather_temp_unit", "celsius")
-                UIManager:close(dialog)
-                UIManager:show(InfoMessage:new { text = "°C" })
-            end,
-        },
-        {
-            text = (cur_unit == "fahrenheit" and "● " or "  ") .. "°F",
-            callback = function()
-                config.set("weather_temp_unit", "fahrenheit")
-                UIManager:close(dialog)
-                UIManager:show(InfoMessage:new { text = "°F" })
-            end,
-        },
-    }
-
-    local days_opts = {}
-    for __, d in ipairs({ 3, 7, 14 }) do
-        table.insert(days_opts, {
-            text = (cur_days == d and "● " or "  ") .. string.format(_("%d days"), d),
-            callback = function()
-                config.set("weather_forecast_days", d)
-                UIManager:close(dialog)
-                UIManager:show(InfoMessage:new { text = string.format(_("%d days"), d) })
-            end,
-        })
-    end
-
     dialog = ButtonDialog:new {
-        title = _("Weather"),
-        buttons = {
-            unit_opts,
-            days_opts,
-            { {
+        title = _("Weather Settings"),
+        buttons = { {
+            {
+                text = _("Temperature Unit"),
+                callback = function()
+                    UIManager:close(dialog)
+                    self:showTempUnitSettings()
+                end,
+            },
+            {
+                text = _("Forecast Days"),
+                callback = function()
+                    UIManager:close(dialog)
+                    self:showForecastDaysSettings()
+                end,
+            },
+            {
+                text = _("Auto Refresh"),
+                callback = function()
+                    UIManager:close(dialog)
+                    self:showAutoRefreshSettings()
+                end,
+            },
+        }, {
+            {
                 text = _("Close"),
+                callback = function()
+                    UIManager:close(dialog)
+                end,
+            },
+        } },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:showTempUnitSettings()
+    local cur = self:getTempUnit()
+    local dialog
+    dialog = ButtonDialog:new {
+        title = _("Temperature Unit"),
+        buttons = {
+            { {
+                text = (cur == "celsius" and "● " or "  ") .. "°C",
+                callback = function()
+                    config.set("weather_temp_unit", "celsius")
+                    UIManager:close(dialog)
+                    UIManager:show(InfoMessage:new { text = "°C" })
+                end,
+            } },
+            { {
+                text = (cur == "fahrenheit" and "● " or "  ") .. "°F",
+                callback = function()
+                    config.set("weather_temp_unit", "fahrenheit")
+                    UIManager:close(dialog)
+                    UIManager:show(InfoMessage:new { text = "°F" })
+                end,
+            } },
+            { {
+                text = _("Back"),
+                is_enter_default = true,
                 callback = function()
                     UIManager:close(dialog)
                 end,
             } },
         },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:showForecastDaysSettings()
+    local cur = self:getForecastDays()
+    local dialog
+    dialog = ButtonDialog:new {
+        title = _("Forecast Days"),
+        buttons = {
+            { {
+                text = (cur == 3 and "● " or "  ") .. _("3 days"),
+                callback = function()
+                    config.set("weather_forecast_days", 3)
+                    UIManager:close(dialog)
+                    UIManager:show(InfoMessage:new { text = _("3 days") })
+                end,
+            } },
+            { {
+                text = (cur == 7 and "● " or "  ") .. _("7 days"),
+                callback = function()
+                    config.set("weather_forecast_days", 7)
+                    UIManager:close(dialog)
+                    UIManager:show(InfoMessage:new { text = _("7 days") })
+                end,
+            } },
+            { {
+                text = (cur == 14 and "● " or "  ") .. _("14 days"),
+                callback = function()
+                    config.set("weather_forecast_days", 14)
+                    UIManager:close(dialog)
+                    UIManager:show(InfoMessage:new { text = _("14 days") })
+                end,
+            } },
+            { {
+                text = _("Back"),
+                is_enter_default = true,
+                callback = function()
+                    UIManager:close(dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:showAutoRefreshSettings()
+    local cur = config.get("weather_refresh_interval", 0)
+    local intervals = {
+        { val = 0, label = _("Off") },
+        { val = 15, label = _("15 min") },
+        { val = 30, label = _("30 min") },
+        { val = 60, label = _("1 hour") },
+        { val = 120, label = _("2 hours") },
+        { val = 180, label = _("3 hours") },
+    }
+    local dialog
+    local buttons = {}
+    for __, m in ipairs(intervals) do
+        table.insert(buttons, { {
+            text = (cur == m.val and "● " or "  ") .. m.label,
+            callback = function()
+                config.set("weather_refresh_interval", m.val)
+                UIManager:close(dialog)
+                UIManager:show(InfoMessage:new { text = m.label })
+            end,
+        } })
+    end
+    table.insert(buttons, { {
+        text = _("Back"),
+        is_enter_default = true,
+        callback = function()
+            UIManager:close(dialog)
+        end,
+    } })
+    dialog = ButtonDialog:new {
+        title = _("Auto Refresh"),
+        buttons = buttons,
     }
     UIManager:show(dialog)
 end
@@ -290,7 +388,7 @@ function Weather:addToMainMenu(menu_items)
                 callback = function() self:openWeatherView() end,
             },
             {
-                text = "\u{F013} " .. _("Temperature Unit"),
+                text = "\u{F013} " .. _("Settings"),
                 keep_menu_open = true,
                 callback = function() self:showSettings() end,
             },
