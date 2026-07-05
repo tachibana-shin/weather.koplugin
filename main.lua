@@ -1,6 +1,7 @@
 local ButtonDialog = require("ui/widget/buttondialog")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
+local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("weather_i18n")
@@ -256,6 +257,14 @@ function Weather:showSettings()
             },
         }, {
             {
+                text = _("Provider"),
+                callback = function()
+                    UIManager:close(dialog)
+                    self:showProviderSettings()
+                end,
+            },
+        }, {
+            {
                 text = _("Close"),
                 callback = function()
                     UIManager:close(dialog)
@@ -376,6 +385,97 @@ function Weather:showAutoRefreshSettings()
         buttons = buttons,
     }
     UIManager:show(dialog)
+end
+
+function Weather:showProviderSettings()
+    local cur = config.get("weather_provider", "openmeteo")
+    local dialog
+    dialog = ButtonDialog:new {
+        title = _("Weather Provider"),
+        buttons = {
+            { {
+                text = (cur == "openmeteo" and "● " or "  ") .. "Open-Meteo",
+                callback = function()
+                    config.set("weather_provider", "openmeteo")
+                    UIManager:close(dialog)
+                end,
+            } },
+            { {
+                text = (cur == "weatherapi" and "● " or "  ") .. "WeatherAPI.com",
+                callback = function()
+                    UIManager:close(dialog)
+                    local key = config.get("weather_weatherapi_key", "")
+                    if key and key ~= "" then
+                        self:validateAndSwitch(key)
+                    else
+                        self:promptWeatherApiKey()
+                    end
+                end,
+            } },
+            { {
+                text = _("Back"),
+                is_enter_default = true,
+                callback = function()
+                    UIManager:close(dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(dialog)
+end
+
+function Weather:validateAndSwitch(key)
+    Trapper:wrap(function()
+        if not Trapper:info(_("Validating...")) then return end
+        local ok, http = pcall(require, "socket.http")
+        if not ok then
+            Trapper:clear()
+            UIManager:show(InfoMessage:new {
+                text = _("HTTP module not available"),
+            })
+            return
+        end
+        local url = "https://api.weatherapi.com/v1/current.json?key="
+            .. key .. "&q=auto:ip"
+        local body, code = http.request(url)
+        Trapper:clear()
+        if code == 200 then
+            config.set("weather_weatherapi_key", key)
+            config.set("weather_provider", "weatherapi")
+            UIManager:show(InfoMessage:new {
+                text = _("WeatherAPI.com key validated"),
+            })
+        else
+            UIManager:show(InfoMessage:new {
+                text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+            })
+        end
+    end)
+end
+
+function Weather:promptWeatherApiKey()
+    local input_dialog
+    input_dialog = InputDialog:new {
+        title = _("WeatherAPI.com API Key"),
+        input = "",
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local key = input_dialog:getInputText()
+                    UIManager:close(input_dialog)
+                    self:validateAndSwitch(key)
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(input_dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(input_dialog)
 end
 
 function Weather:addToMainMenu(menu_items)

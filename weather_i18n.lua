@@ -152,6 +152,14 @@ t.vi = {
     Icon = "Biểu tượng",
     Units = "Đơn vị",
     ["EC AQI by pollutant"] = "EC AQI theo chất ô nhiễm",
+    Provider = "Nhà cung cấp",
+    ["Weather Provider"] = "Nhà cung cấp thời tiết",
+    ["API Key"] = "Khóa API",
+    ["WeatherAPI.com API Key"] = "Khóa API WeatherAPI.com",
+    ["WeatherAPI.com key not set"] = "Chưa đặt khóa API WeatherAPI.com",
+    ["Validating..."] = "Đang xác thực...",
+    ["Invalid API key"] = "Khóa API không hợp lệ",
+    ["WeatherAPI.com key validated"] = "Khóa API WeatherAPI.com hợp lệ",
 }
 
 t.zh = {
@@ -235,6 +243,14 @@ t.zh = {
     ["Please set your location first in Weather settings."] = "请先在天气设置中设置位置。",
     Version = "版本",
     ["EC AQI by pollutant"] = "各污染物EC AQI",
+    Provider = "服务商",
+    ["Weather Provider"] = "天气服务商",
+    ["API Key"] = "API密钥",
+    ["WeatherAPI.com API Key"] = "WeatherAPI.com API密钥",
+    ["WeatherAPI.com key not set"] = "未设置WeatherAPI.com密钥",
+    ["Validating..."] = "验证中...",
+    ["Invalid API key"] = "无效API密钥",
+    ["WeatherAPI.com key validated"] = "WeatherAPI.com密钥已验证",
 }
 
 t.ja = {
@@ -318,6 +334,14 @@ t.ja = {
     ["Please set your location first in Weather settings."] = "天気設定で最初に場所を設定してください。",
     Version = "バージョン",
     ["EC AQI by pollutant"] = "汚染物質別EC AQI",
+    Provider = "プロバイダ",
+    ["Weather Provider"] = "天気プロバイダ",
+    ["API Key"] = "APIキー",
+    ["WeatherAPI.com API Key"] = "WeatherAPI.com APIキー",
+    ["WeatherAPI.com key not set"] = "WeatherAPI.comキーが設定されていません",
+    ["Validating..."] = "検証中...",
+    ["Invalid API key"] = "無効なAPIキー",
+    ["WeatherAPI.com key validated"] = "WeatherAPI.comキーが確認されました",
 }
 
 local function lookup(key)

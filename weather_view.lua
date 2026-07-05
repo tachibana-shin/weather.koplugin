@@ -74,6 +74,16 @@ function WeatherView:onRefreshTimer()
     Trapper:wrap(function()
         if not Trapper:info(_("Refreshing...")) then return end
         self:fetchWeather()
+        Trapper:clear()
+    end)
+end
+
+function WeatherView:onRefresh()
+    local Trapper = require("ui/trapper")
+    Trapper:wrap(function()
+        if not Trapper:info(_("Refreshing...")) then return end
+        self:fetchWeather()
+        Trapper:clear()
     end)
 end
 
@@ -148,17 +158,24 @@ function WeatherView:buildLayout()
         self.save_btn.enabled = true
         self.save_btn.image.dim = false
     end
+    local refresh_btn = IconButton:new {
+        icon = "cre.render.reload",
+        width = icon_sz, height = icon_sz,
+        padding = btn_pad, padding_bottom = icon_sz,
+        callback = function() self:onRefresh() end,
+        show_parent = self,
+    }
     local left_group = HorizontalGroup:new {
         overlap_align = "left",
-        search_btn, self.save_btn,
+        search_btn, self.save_btn, refresh_btn,
     }
     table.insert(self.title_bar, 1, left_group)
-    -- Push title right to clear both buttons
+    -- Push title right to clear all buttons
     if self.title_bar.inner_title_group then
         local hspan = self.title_bar.inner_title_group[1]
         if hspan then
             local btn_w = icon_sz + 2 * btn_pad
-            hspan.width = hspan.width + 2 * btn_w
+            hspan.width = hspan.width + 3 * btn_w
             self.title_bar.inner_title_group._size = nil
             self.title_bar.title_group._size = nil
             self.title_bar._size = nil
