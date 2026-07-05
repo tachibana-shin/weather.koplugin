@@ -490,7 +490,7 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = _("Help me choose"),
+                text = "\u{F059} " .. _("Help me choose"),
                 callback = function()
                     UIManager:close(dialog)
                     self:showProviderHelp()
