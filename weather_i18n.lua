@@ -174,6 +174,10 @@ t.vi = {
     ["Weatherbit API Key"] = "Khóa API Weatherbit",
     ["Weatherbit key validated"] = "Khóa API Weatherbit hợp lệ",
     ["Weatherbit API key not set"] = "Chưa đặt khóa API Weatherbit",
+    ["Visual Crossing API Key"] = "Khóa API Visual Crossing",
+    ["Visual Crossing key validated"] = "Khóa API Visual Crossing hợp lệ",
+    ["Visual Crossing API key not set"] = "Chưa đặt khóa API Visual Crossing",
+    ["Free tier, need API key, ≤15 days, no AQI"] = "Gói miễn phí, cần API key, ≤15 ngày, không AQI",
 }
 
 t.zh = {
@@ -279,6 +283,10 @@ t.zh = {
     ["Weatherbit API Key"] = "Weatherbit API密钥",
     ["Weatherbit key validated"] = "Weatherbit密钥已验证",
     ["Weatherbit API key not set"] = "未设置Weatherbit密钥",
+    ["Visual Crossing API Key"] = "Visual Crossing API密钥",
+    ["Visual Crossing key validated"] = "Visual Crossing密钥已验证",
+    ["Visual Crossing API key not set"] = "未设置Visual Crossing密钥",
+    ["Free tier, need API key, ≤15 days, no AQI"] = "免费版，需要API密钥，≤15天，无AQI",
 }
 
 t.ja = {
@@ -384,6 +392,10 @@ t.ja = {
     ["Weatherbit API Key"] = "Weatherbit APIキー",
     ["Weatherbit key validated"] = "Weatherbitキーが確認されました",
     ["Weatherbit API key not set"] = "Weatherbitキーが設定されていません",
+    ["Visual Crossing API Key"] = "Visual Crossing APIキー",
+    ["Visual Crossing key validated"] = "Visual Crossingキーが確認されました",
+    ["Visual Crossing API key not set"] = "Visual Crossingキーが設定されていません",
+    ["Free tier, need API key, ≤15 days, no AQI"] = "無料枠、APIキー必要、最大15日、AQIなし",
 }
 
 local function lookup(key)

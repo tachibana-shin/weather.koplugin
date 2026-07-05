@@ -15,6 +15,7 @@ local PROVIDER_NAMES = {
     iqair = "IQAir",
     tomorrowio = "Tomorrow.io",
     weatherbit = "Weatherbit",
+    visualcrossing = "Visual Crossing",
 }
 
 -- Footer — credit line

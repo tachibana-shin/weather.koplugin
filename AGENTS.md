@@ -27,6 +27,9 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 - No `continue`; use `goto` or restructure
 - **`_` is reserved for gettext** (`local _ = require("weather_i18n")`). Never use `_` as a for-loop placeholder — use `__` instead, or `_` will be shadowed by a number and `_("...")` will crash with "attempt to call a number value".
 
+## Providers
+- `providers/visualcrossing.lua` — Visual Crossing Weather API (`weather.visualcrossing.com`). Free tier: 1,000 records/day, need API key, ≤15 days forecast, no AQI. Single endpoint `/timeline/LAT,LON` returns `currentConditions` + `days[]` (each with `hours[]`). Icon names (Dark Sky style) mapped to set-4 via `VISUALCROSSING_ICONS`. Wind in km/h (metric), temp in °C (metric). WMO_MAP for precipitation icons → `rain_prediction`. Open-Meteo AQI fallback via `weather_api.lua`.
+
 ## Styling conventions
 - `snake_case` for locals and functions, `camelCase` for methods/widget members
 - `Screen:scaleBySize()` for all sizing (never hardcode pixels)

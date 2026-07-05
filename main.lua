@@ -454,6 +454,19 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
+                text = (cur == "visualcrossing" and "● " or "  ") .. "Visual Crossing"
+                    .. "\n" .. _("Free tier, need API key, ≤15 days, no AQI"),
+                callback = function()
+                    UIManager:close(dialog)
+                    local key = config.get("weather_visualcrossing_key", "")
+                    if key and key ~= "" then
+                        self:validateAndSwitchVisualCrossing(key)
+                    else
+                        self:promptVisualCrossingKey()
+                    end
+                end,
+            } },
+            { {
                 text = _("Back"),
                 is_enter_default = true,
                 callback = function()
@@ -697,6 +710,70 @@ function Weather:promptWeatherbitKey()
                     local key = input_dialog:getInputText()
                     UIManager:close(input_dialog)
                     self:validateAndSwitchWeatherbit(key)
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(input_dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(input_dialog)
+end
+
+function Weather:validateAndSwitchVisualCrossing(key)
+    Trapper:wrap(function()
+        if not Trapper:info(_("Validating...")) then return end
+        local ok, http = pcall(require, "socket.http")
+        if not ok then
+            Trapper:clear()
+            UIManager:show(InfoMessage:new {
+                text = _("HTTP module not available"),
+            })
+            return
+        end
+        local url = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/"
+            .. "21,105"
+            .. "?unitGroup=metric"
+            .. "&include=current"
+            .. "&key=" .. key
+            .. "&contentType=json"
+        local body, code = http.request(url)
+        Trapper:clear()
+        if code == 200 and body then
+            local ok_json, JSON = pcall(require, "json")
+            if ok_json then
+                local ok_decode, data = pcall(JSON.decode, body)
+                if ok_decode and data and data.currentConditions then
+                    config.set("weather_visualcrossing_key", key)
+                    config.set("weather_provider", "visualcrossing")
+                    UIManager:show(InfoMessage:new {
+                        text = _("Visual Crossing key validated"),
+                    })
+                    return
+                end
+            end
+        end
+        UIManager:show(InfoMessage:new {
+            text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+        })
+    end)
+end
+
+function Weather:promptVisualCrossingKey()
+    local input_dialog
+    input_dialog = InputDialog:new {
+        title = _("Visual Crossing API Key"),
+        input = "",
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local key = input_dialog:getInputText()
+                    UIManager:close(input_dialog)
+                    self:validateAndSwitchVisualCrossing(key)
                 end,
             } },
             { {

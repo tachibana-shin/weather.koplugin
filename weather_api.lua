@@ -168,6 +168,7 @@ local PROVIDERS = {
     iqair = "providers/iqair",
     tomorrowio = "providers/tomorrowio",
     weatherbit = "providers/weatherbit",
+    visualcrossing = "providers/visualcrossing",
 }
 
 local function fetch_openmeteo_aqi(lat, lon)
