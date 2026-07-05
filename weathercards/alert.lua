@@ -70,12 +70,16 @@ return function(h)
     local cur = h.cur
     if not cur.temperature then return end
 
-    if cur.heat_index >= 30 or cur.temperature >= 30 then
+    local temp_unit = h.self.temp_unit or "celsius"
+    local hot_threshold = temp_unit == "fahrenheit" and 86 or 30
+    local cold_threshold = temp_unit == "fahrenheit" and 32 or 0
+
+    if (cur.heat_index and cur.heat_index >= hot_threshold) or cur.temperature >= hot_threshold then
         addAlert(h.self, h, _("Too hot"), h.gauges.rgb(180, 40, 40), h.gauges.rgb(220, 80, 80),
             h.gauges.rgb(255, 255, 255), string.format("%s %d°", _("Heat Index"), math.floor(cur.heat_index + 0.5)))
     end
 
-    if cur.temperature <= 0 or cur.heat_index <= 0 then
+    if cur.temperature <= cold_threshold or (cur.heat_index and cur.heat_index <= cold_threshold) then
         addAlert(h.self, h, _("Too cold"), h.gauges.rgb(40, 40, 180), h.gauges.rgb(80, 80, 220),
             h.gauges.rgb(255, 255, 255), string.format("%s %d°", _("Wind Chill"), math.floor(cur.wind_chill + 0.5)))
     end

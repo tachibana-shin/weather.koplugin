@@ -188,11 +188,11 @@ return function(h)
                 fgcolor = h.gauges.rgb(66, 133, 244),
             })
             table.insert(body, TextWidget:new {
-                text = string.format("%.1f mm", tp_prob),
+                text = string.format("%.1f %s", tp_prob, h.api.precipUnitLabel()),
                 face = Font:getFace("pgfont", 40), bold = true,
             })
             table.insert(body, TextWidget:new {
-                text = string.format("%s: %.1f mm", _("Forecast rainfall"), tp_actual),
+                text = string.format("%s: %.1f %s", _("Forecast rainfall"), tp_actual, h.api.precipUnitLabel()),
                 face = Font:getFace("smallinfofont", 14),
                 fgcolor = Blitbuffer.COLOR_DIM_GRAY,
             })
@@ -223,7 +223,7 @@ return function(h)
                 fgcolor = h.gauges.rgb(66, 133, 244),
             })
             table.insert(body, TextWidget:new {
-                text = string.format("%d km/h", avg),
+                text = string.format("%d %s", avg, h.api.windUnitLabel()),
                 face = Font:getFace("pgfont", 40), bold = true,
             })
             table.insert(body, VerticalSpan:new { width = Screen:scaleBySize(8) })

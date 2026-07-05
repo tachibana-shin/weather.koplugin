@@ -10,6 +10,7 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
+local IconButton = require("ui/widget/iconbutton")
 local ImageWidget = require("ui/widget/imagewidget")
 local InfoMessage = require("ui/widget/infomessage")
 local Input = Device.input
@@ -83,10 +84,70 @@ function WeatherView:buildLayout()
     self.title_bar = TitleBar:new {
         fullscreen = true, width = sw, align = "left",
         title = self.location_name or _("Weather"),
-        left_icon = "appbar.search",
-        left_icon_tap_callback = function() self:onSearchLocation() end,
         close_callback = function() self:onClose() end, show_parent = self,
     }
+
+    local icon_sz = Screen:scaleBySize(24)
+    local btn_pad = Screen:scaleBySize(11)
+
+    -- Build search + save button group
+    local search_btn = IconButton:new {
+        icon = "appbar.search",
+        width = icon_sz, height = icon_sz,
+        padding = btn_pad, padding_bottom = icon_sz,
+        callback = function() self:onSearchLocation() end,
+        show_parent = self,
+    }
+    self.save_btn = IconButton:new {
+        icon = "bookmark",
+        width = icon_sz, height = icon_sz,
+        padding = btn_pad, padding_bottom = icon_sz,
+        enabled = false,
+        callback = function()
+            if not self.save_btn.enabled then return end
+            local lat = self.lat
+            local lon = self.lon
+            if not lat or not lon then
+                UIManager:show(InfoMessage:new { text = _("Location not set") })
+                return
+            end
+            config.set("weather_latitude", lat)
+            config.set("weather_longitude", lon)
+            config.set("weather_location_name", self.location_name)
+            UIManager:show(InfoMessage:new {
+                text = string.format(_("Location saved: %.4f, %.4f"), lat, lon),
+            })
+            self.save_pending = false
+            self.save_btn.enabled = false
+            self.save_btn.image.dim = true
+            UIManager:setDirty(self, "ui", self.dimen)
+        end,
+        show_parent = self,
+    }
+    self.save_btn.image.dim = true
+    if self.save_pending then
+        self.save_btn.enabled = true
+        self.save_btn.image.dim = false
+    end
+    local left_group = HorizontalGroup:new {
+        overlap_align = "left",
+        search_btn, self.save_btn,
+    }
+    table.insert(self.title_bar, 1, left_group)
+    -- Push title right to clear both buttons
+    if self.title_bar.inner_title_group then
+        local hspan = self.title_bar.inner_title_group[1]
+        if hspan then
+            local btn_w = icon_sz + 2 * btn_pad
+            hspan.width = hspan.width + 2 * btn_w
+            self.title_bar.inner_title_group._size = nil
+            self.title_bar.title_group._size = nil
+            self.title_bar._size = nil
+            -- Force recompute then clamp to full width
+            self.title_bar:getSize()
+            self.title_bar._size.w = math.max(self.title_bar._size.w, self.title_bar.width)
+        end
+    end
     self.cards = VerticalGroup:new { align = "left" }
     local content = VerticalGroup:new {
         align = "left", dimen = Geom:new { w = sw, h = sh },
@@ -134,7 +195,7 @@ function WeatherView:fetchWeather()
         self:displayError(_("Location not set"))
         return
     end
-    local data, err = api.fetch(self.lat, self.lon, self.temp_unit, self.forecast_days)
+    local data, err = api.fetch(self.lat, self.lon, self.temp_unit, self.forecast_days, config.get("weather_wind_unit", "kmh"), config.get("weather_precip_unit", "mm"))
     if not data then
         self:displayError(err or _("Could not fetch weather data"))
         return
@@ -235,13 +296,11 @@ function WeatherView:onSearchLocation()
                                 if r.admin1 then table.insert(parts, r.admin1) end
                                 if r.country then table.insert(parts, r.country) end
                                 local loc_name = #parts > 0 and table.concat(parts, ", ") or query
-                                config.set("weather_latitude", lat)
-                                config.set("weather_longitude", lon)
-                                config.set("weather_location_name", loc_name)
                                 self.lat = lat
                                 self.lon = lon
                                 self.location_name = loc_name
                                 Trapper:info(string.format(_("Location set to %s"), loc_name))
+                                self:enableSaveButton()
                                 self:fetchWeather()
                             end
                             pickResult(data.results[1])
@@ -261,13 +320,11 @@ function WeatherView:onSearchLocation()
                                         local lat = tonumber(r.latitude)
                                         local lon = tonumber(r.longitude)
                                         if lat and lon then
-                                            config.set("weather_latitude", lat)
-                                            config.set("weather_longitude", lon)
-                                            config.set("weather_location_name", label)
                                             self.lat = lat
                                             self.lon = lon
                                             self.location_name = label
                                             UIManager:close(dialog_sel)
+                                            self:enableSaveButton()
                                             self:fetchWeather()
                                         end
                                     end,
@@ -293,6 +350,16 @@ function WeatherView:onSearchLocation()
     }
     UIManager:show(dialog)
     dialog:onShowKeyboard()
+end
+
+function WeatherView:enableSaveButton()
+    self.save_pending = true
+    if not self.save_btn then return end
+    self.save_btn.enabled = true
+    self.save_btn.image.dim = false
+    if self.dimen then
+        UIManager:setDirty(self, "ui", self.dimen)
+    end
 end
 
 function WeatherView:onSwipe(_, ges_ev)

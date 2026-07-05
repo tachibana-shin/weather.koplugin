@@ -150,6 +150,7 @@ t.vi = {
     Back = "Quay lại",
     Temperature = "Nhiệt độ",
     Icon = "Biểu tượng",
+    Units = "Đơn vị",
 }
 
 t.zh = {

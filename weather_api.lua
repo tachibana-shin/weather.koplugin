@@ -1,4 +1,5 @@
 local _ = require("weather_i18n")
+local config = require("weather_config")
 
 local M = {}
 
@@ -157,9 +158,11 @@ function M.uvLabel(index)
     else return _("Extreme") end
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days)
+function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
     temp_unit = temp_unit or "celsius"
     forecast_days = forecast_days or 7
+    wind_unit = wind_unit or "kmh"
+    precip_unit = precip_unit or "mm"
 
     local ok, http = pcall(require, "socket.http")
     if not ok then
@@ -215,7 +218,8 @@ function M.fetch(lat, lon, temp_unit, forecast_days)
         .. "&timezone=auto"
         .. "&temperature_unit=" .. urlencode(temp_unit)
         .. "&forecast_days=" .. tostring(forecast_days)
-        .. "&wind_speed_unit=kmh"
+        .. "&wind_speed_unit=" .. urlencode(wind_unit)
+        .. "&precipitation_unit=" .. urlencode(precip_unit)
 
     local body, code = http.request(url)
     if code ~= 200 then
@@ -262,8 +266,16 @@ function M.fetch(lat, lon, temp_unit, forecast_days)
             result.current.weather_icon = M.getNightIcon(result.current.weather_icon)
         end
 
-        local hi = heat_index(current.temperature_2m, current.relative_humidity_2m)
-        local wc = wind_chill(current.temperature_2m, current.wind_speed_10m)
+        local t_celsius = current.temperature_2m
+        if temp_unit == "fahrenheit" then
+            t_celsius = (t_celsius - 32) * 5/9
+        end
+        local hi = heat_index(t_celsius, current.relative_humidity_2m)
+        local wc = wind_chill(t_celsius, current.wind_speed_10m)
+        if temp_unit == "fahrenheit" then
+            hi = hi and (hi * 9/5 + 32) or nil
+            wc = wc and (wc * 9/5 + 32) or nil
+        end
         result.current.heat_index = hi
         result.current.wind_chill = wc
         if hi and hi >= 30 then
@@ -368,6 +380,40 @@ function M.fetch(lat, lon, temp_unit, forecast_days)
     result.timezone_abbr = data.timezone_abbreviation
 
     return result, nil
+end
+
+local WIND_LABELS = { kmh = "km/h", ms = "m/s", mph = "mph", knots = "knots" }
+local PRESSURE_LABELS = { hPa = "hPa", inHg = "inHg", mmHg = "mmHg" }
+
+function M.windUnitLabel()
+    return WIND_LABELS[config.get("weather_wind_unit", "kmh")] or "km/h"
+end
+
+function M.pressureDisplay(hpa)
+    if not hpa then return nil end
+    local unit = config.get("weather_pressure_unit", "hPa")
+    if unit == "inHg" then
+        return string.format("%.2f inHg", hpa * 0.02953)
+    elseif unit == "mmHg" then
+        return string.format("%.0f mmHg", hpa * 0.75006)
+    end
+    return string.format("%.0f hPa", hpa)
+end
+
+function M.precipUnitLabel()
+    return config.get("weather_precip_unit", "mm") == "inch" and _("inch") or "mm"
+end
+
+function M.pressureUnitLabel()
+    return PRESSURE_LABELS[config.get("weather_pressure_unit", "hPa")] or "hPa"
+end
+
+function M.pressureConvert(hpa)
+    local unit = config.get("weather_pressure_unit", "hPa")
+    if unit == "inHg" then return hpa * 0.02953
+    elseif unit == "mmHg" then return hpa * 0.75006
+    end
+    return hpa
 end
 
 return M

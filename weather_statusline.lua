@@ -131,6 +131,14 @@ local ICON_SYMBOLS = {
     very_cold = "\u{2744}",
 }
 
+local function windLabel()
+    return api.windUnitLabel()
+end
+
+local function pressureDisplay(hpa)
+    return api.pressureDisplay(hpa)
+end
+
 local function compute()
     if not cache_data then return {} end
     local cur = cache_data.current
@@ -159,10 +167,10 @@ local function compute()
     fields.humidity = cur.humidity and string.format("%d%%", cur.humidity)
     if cur.wind_speed then
         local dir = cur.wind_label or ""
-        fields.wind = string.format("%.0f km/h %s", cur.wind_speed, dir)
+        fields.wind = string.format("%.0f %s %s", cur.wind_speed, windLabel(), dir)
     end
     fields.uv_index = today and today.uv_index and string.format("UV %g", today.uv_index)
-    fields.pressure = cur.pressure and string.format("%.0f hPa", cur.pressure)
+    fields.pressure = pressureDisplay(cur.pressure)
     fields.precip_chance = today and today.precip_prob
         and string.format("%d%%", today.precip_prob)
     fields.location = config.get("weather_location_name")
@@ -250,6 +258,14 @@ local function showSettings()
             callback = function()
                 UIManager:close(_dialog_ref)
                 showFieldSettings("long")
+            end,
+        } })
+
+        table.insert(buttons, { {
+            text = _("Units") .. " · " .. api.windUnitLabel() .. " / " .. config.get("weather_pressure_unit", "hPa") .. " / " .. config.get("weather_precip_unit", "mm"),
+            callback = function()
+                UIManager:close(_dialog_ref)
+                showUnitsDialog()
             end,
         } })
 
@@ -354,6 +370,77 @@ showFieldSettings = function(name)
     buildFieldDialog()
 end
 
+local function showUnitsDialog()
+    local WIND_OPTS = { kmh = "km/h", ms = "m/s", mph = "mph", knots = "knots" }
+    local PRESSURE_OPTS = { hPa = "hPa", inHg = "inHg", mmHg = "mmHg" }
+    local PRECIP_OPTS = { mm = "mm", inch = _("inch") }
+
+    local function radioGroup(opts, cur_key, on_select)
+        local rows = {}
+        for k, label in pairs(opts) do
+            table.insert(rows, {
+                text = (cur_key == k and "● " or "  ") .. label,
+                callback = function()
+                    on_select(k)
+                end,
+            })
+        end
+        return rows
+    end
+
+    local function saveAndBack(unit_type, value)
+        config.set("weather_" .. unit_type .. "_unit", value)
+        UIManager:close(_dialog_ref)
+        showUnitsDialog()
+    end
+
+    local cur_wind = config.get("weather_wind_unit", "kmh")
+    local cur_pressure = config.get("weather_pressure_unit", "hPa")
+    local cur_precip = config.get("weather_precip_unit", "mm")
+
+    local buttons = {}
+    table.insert(buttons, { { text = _("Wind"), callback = function() end } })
+    for k, label in pairs(WIND_OPTS) do
+        table.insert(buttons, { {
+            text = (cur_wind == k and "● " or "  ") .. label,
+            callback = function()
+                saveAndBack("wind", k)
+            end,
+        } })
+    end
+    table.insert(buttons, { { text = _("Pressure"), callback = function() end } })
+    for k, label in pairs(PRESSURE_OPTS) do
+        table.insert(buttons, { {
+            text = (cur_pressure == k and "● " or "  ") .. label,
+            callback = function()
+                saveAndBack("pressure", k)
+            end,
+        } })
+    end
+    table.insert(buttons, { { text = _("Precipitation"), callback = function() end } })
+    for k, label in pairs(PRECIP_OPTS) do
+        table.insert(buttons, { {
+            text = (cur_precip == k and "● " or "  ") .. label,
+            callback = function()
+                saveAndBack("precip", k)
+            end,
+        } })
+    end
+    table.insert(buttons, { {
+        text = _("Back"),
+        callback = function()
+            UIManager:close(_dialog_ref)
+            showSettings()
+        end,
+    } })
+
+    _dialog_ref = ButtonDialog:new {
+        title = _("Units"),
+        buttons = buttons,
+    }
+    UIManager:show(_dialog_ref)
+end
+
 showPreview = function()
     if not cache_data then
         local lat = config.get("weather_latitude")
@@ -368,7 +455,9 @@ showPreview = function()
         UIManager:show(msg)
         local temp_unit = config.get("weather_temp_unit", "celsius")
         local forecast_days = config.get("weather_forecast_days", 7)
-        local data, err = api.fetch(tonumber(lat), tonumber(lon), temp_unit, forecast_days)
+        local wind_unit = config.get("weather_wind_unit", "kmh")
+        local precip_unit = config.get("weather_precip_unit", "mm")
+        local data, err = api.fetch(tonumber(lat), tonumber(lon), temp_unit, forecast_days, wind_unit, precip_unit)
         UIManager:close(msg)
         if not data then
             UIManager:show(InfoMessage:new {
@@ -386,6 +475,39 @@ showPreview = function()
     UIManager:show(InfoMessage:new { text = text })
 end
 
+local FIELD_ICONS = {
+    temperature = "mostly_sunny",
+    feels_like = "mostly_clear_day",
+    high_low = "mostly_clear_day",
+    humidity = "drizzle",
+    wind = "windy",
+    uv_index = "sunny",
+    pressure = "cloudy",
+    precip_chance = "rain_with_cloudy",
+    sunrise_set = "clear_day",
+    dew_point = "icy",
+}
+
+local LABEL_ICONS = {
+    icon = "\u{2600}",
+    temperature = "\u{26C5}",
+    condition = "",
+    feels_like = "\u{26C5}",
+    high_low = "\u{26C5}",
+    humidity = "\u{2602}",
+    wind = "\u{2601}",
+    uv_index = "\u{2600}",
+    pressure = "\u{2601}",
+    precip_chance = "\u{2602}",
+    location = "",
+    sunrise_set = "\u{2600}",
+    dew_point = "\u{2744}",
+}
+
+local function svg_path(name)
+    return plugin_dir .. "resources/google-weather/set-4/" .. name .. ".svg"
+end
+
 local function tap_cb()
     UIManager:broadcastEvent(Event:new("WeatherOpen"))
 end
@@ -396,6 +518,9 @@ local function registerZenUI()
 
     for __, field in ipairs(ALL_FIELDS) do
         local key = field.key
+        local icon_prefix = LABEL_ICONS[key]
+        local label = icon_prefix and icon_prefix ~= "" and icon_prefix .. " " .. field.name or field.name
+
         _G.__ZEN_UI_REGISTER_STATUS_ITEM("weather_" .. key, function()
             local vals = compute()
             local val = vals[key]
@@ -403,12 +528,16 @@ local function registerZenUI()
             if key == "icon" then
                 local icon_name = cache_data and cache_data.current and cache_data.current.weather_icon
                 if icon_name then
-                    return plugin_dir .. "resources/google-weather/set-4/" .. icon_name .. ".svg", "", nil, true
+                    return svg_path(icon_name), "", nil, true
                 end
                 return nil
             end
+            local icon_name = FIELD_ICONS[key]
+            if icon_name then
+                return svg_path(icon_name), val, nil, true
+            end
             return "", val, nil
-        end, { label = field.name, side = "right", callback = tap_cb })
+        end, { label = label, side = "right", callback = tap_cb })
     end
 
     _G.__ZEN_UI_REGISTER_STATUS_ITEM("weather_status_short", function()

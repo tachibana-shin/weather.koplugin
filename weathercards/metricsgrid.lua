@@ -106,7 +106,7 @@ return function(h)
             },
         }
         table.insert(r1, scard(
-            svg(_("Wind"), string.format("%.0f", cur.wind_speed), "km/h",
+            svg(_("Wind"), string.format("%.0f", cur.wind_speed), h.api.windUnitLabel(),
                 wd .. " \u{2022} " .. _("From") .. " " .. dir_vi),
             ri
         ))
@@ -284,12 +284,12 @@ return function(h)
         table.insert(left, VerticalSpan:new { width = Screen:scaleBySize(2) })
         local vg = HorizontalGroup:new { align = "bottom" }
         table.insert(vg, TextWidget:new {
-            text = string.format("%.0f", cur.pressure),
+            text = string.format("%.0f", h.api.pressureConvert(cur.pressure)),
             face = Font:getFace("pgfont", 34), bold = true,
         })
         table.insert(vg, HorizontalSpan:new { width = Screen:scaleBySize(3) })
         table.insert(vg, TextWidget:new {
-            text = "mBar", face = Font:getFace("smallinfofont", 15),
+            text = h.api.pressureUnitLabel(), face = Font:getFace("smallinfofont", 15),
             fgcolor = Blitbuffer.COLOR_DIM_GRAY,
         })
         table.insert(left, vg)

@@ -69,12 +69,12 @@ return function(h)
     })
     if cur.heat_index and cur.heat_index >= 30 then
         table.insert(rc, TextWidget:new {
-            text = string.format("%s %d°C", _("Heat Index"), math.floor(cur.heat_index + 0.5)),
+            text = string.format("%s %d°", _("Heat Index"), math.floor(cur.heat_index + 0.5)),
             face = Font:getFace("smallinfofont", 16), fgcolor = h.gauges.rgb(220, 80, 80),
         })
     elseif cur.wind_chill and cur.wind_chill <= 0 then
         table.insert(rc, TextWidget:new {
-            text = string.format("%s %d°C", _("Wind Chill"), math.floor(cur.wind_chill + 0.5)),
+            text = string.format("%s %d°", _("Wind Chill"), math.floor(cur.wind_chill + 0.5)),
             face = Font:getFace("smallinfofont", 16), fgcolor = h.gauges.rgb(80, 80, 220),
         })
     end
