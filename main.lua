@@ -413,6 +413,18 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
+                text = (cur == "iqair" and "● " or "  ") .. "IQAir",
+                callback = function()
+                    UIManager:close(dialog)
+                    local key = config.get("weather_iqair_key", "")
+                    if key and key ~= "" then
+                        self:validateAndSwitchIQAir(key)
+                    else
+                        self:promptIQAirKey()
+                    end
+                end,
+            } },
+            { {
                 text = _("Back"),
                 is_enter_default = true,
                 callback = function()
@@ -465,6 +477,65 @@ function Weather:promptWeatherApiKey()
                     local key = input_dialog:getInputText()
                     UIManager:close(input_dialog)
                     self:validateAndSwitch(key)
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(input_dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(input_dialog)
+end
+
+function Weather:validateAndSwitchIQAir(key)
+    Trapper:wrap(function()
+        if not Trapper:info(_("Validating...")) then return end
+        local ok, http = pcall(require, "socket.http")
+        if not ok then
+            Trapper:clear()
+            UIManager:show(InfoMessage:new {
+                text = _("HTTP module not available"),
+            })
+            return
+        end
+        local url = "https://api.airvisual.com/v2/nearest_city?key=" .. key
+        local body, code = http.request(url)
+        Trapper:clear()
+        if code == 200 and body then
+            local ok_json, JSON = pcall(require, "json")
+            if ok_json then
+                local ok_decode, data = pcall(JSON.decode, body)
+                if ok_decode and data and data.status == "success" then
+                    config.set("weather_iqair_key", key)
+                    config.set("weather_provider", "iqair")
+                    UIManager:show(InfoMessage:new {
+                        text = _("IQAir key validated"),
+                    })
+                    return
+                end
+            end
+        end
+        UIManager:show(InfoMessage:new {
+            text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+        })
+    end)
+end
+
+function Weather:promptIQAirKey()
+    local input_dialog
+    input_dialog = InputDialog:new {
+        title = _("IQAir API Key"),
+        input = "",
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local key = input_dialog:getInputText()
+                    UIManager:close(input_dialog)
+                    self:validateAndSwitchIQAir(key)
                 end,
             } },
             { {

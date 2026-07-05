@@ -160,6 +160,9 @@ t.vi = {
     ["Validating..."] = "Đang xác thực...",
     ["Invalid API key"] = "Khóa API không hợp lệ",
     ["WeatherAPI.com key validated"] = "Khóa API WeatherAPI.com hợp lệ",
+    ["IQAir API Key"] = "Khóa API IQAir",
+    ["IQAir key validated"] = "Khóa API IQAir hợp lệ",
+    ["IQAir API key not set"] = "Chưa đặt khóa API IQAir",
 }
 
 t.zh = {
@@ -251,6 +254,9 @@ t.zh = {
     ["Validating..."] = "验证中...",
     ["Invalid API key"] = "无效API密钥",
     ["WeatherAPI.com key validated"] = "WeatherAPI.com密钥已验证",
+    ["IQAir API Key"] = "IQAir API密钥",
+    ["IQAir key validated"] = "IQAir密钥已验证",
+    ["IQAir API key not set"] = "未设置IQAir密钥",
 }
 
 t.ja = {
@@ -342,6 +348,9 @@ t.ja = {
     ["Validating..."] = "検証中...",
     ["Invalid API key"] = "無効なAPIキー",
     ["WeatherAPI.com key validated"] = "WeatherAPI.comキーが確認されました",
+    ["IQAir API Key"] = "IQAir APIキー",
+    ["IQAir key validated"] = "IQAirキーが確認されました",
+    ["IQAir API key not set"] = "IQAirキーが設定されていません",
 }
 
 local function lookup(key)

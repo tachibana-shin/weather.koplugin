@@ -165,6 +165,7 @@ end
 local PROVIDERS = {
     openmeteo = "providers/openmeteo",
     weatherapi = "providers/weatherapi",
+    iqair = "providers/iqair",
 }
 
 function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
