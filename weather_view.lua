@@ -41,6 +41,7 @@ local WeatherView = FocusManager:extend {
     forecast_days = 7,
     location_name = nil,
     close_callback = nil,
+    force_refresh = false,
 }
 
 function WeatherView:init()
@@ -58,9 +59,17 @@ function WeatherView:init()
         }
     end
     self.pad = Size.padding.default
-    self:showLoading()
     self:buildLayout()
-    self:fetchWeather()
+    local cached = api.cacheLoad()
+    if cached and not self.force_refresh then
+        self:displayWeather(cached, true)
+    else
+        self:showLoading()
+        UIManager:setDirty(self, function()
+            return "ui", self.dimen
+        end)
+        self:fetchWeather()
+    end
 end
 
 function WeatherView:scheduleRefresh()

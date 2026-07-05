@@ -78,10 +78,11 @@ return function(h)
         scroll_bar_width = Screen:scaleBySize(3),
         swipe_full_view = false,
     }
-    sc.show_parent = self
+    sc.show_parent = h.menu_ref or self
     sc[1] = FrameContainer:new {
         width = tw, bordersize = 0, padding = 0, hg,
     }
+    if sc.initState then sc:initState() end
     self:add(h.card(VerticalGroup:new {
         align = "left",
         title,

@@ -20,7 +20,9 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 - **`FitWidthContainer`** (custom, `weatherview.lua:36-45`): `InputContainer:extend` that reports fixed `fw` width but delegates height to child. Use when content must not overflow scrollable viewport.
 - **`LeftContainer`** left-aligns child within `dimen` (no horizontal shift). `RightContainer` right-aligns. Both vertically center the child.
 - **SVG rules**: `ImageWidget` with SVGs needs `alpha = true, is_icon = true`; no `<text>`, `<defs>`, `<linearGradient>`, or `<stop>` elements (not supported by KOReader renderer).
-- **`show_parent`** must be set for `UIManager:setDirty` to propagate through scrollable views.
+- **`show_parent`** must be set for `UIManager:setDirty` to propagate through scrollable views. When a ScrollableContainer lives inside a Zen UI home page, `show_parent` must point to the window-level Menu widget (`ctx.menu`).
+- **`InputContainer:getSize()`** returns `self.dimen` (allocated size), NOT actual child content. Override it to return `self[1]:getSize()` when parent containers (e.g., ScrollableContainer:initState) need the true rendered height.
+- **`ScrollableContainer`: wrap body in `ScrollableContainer{ dimen = Geom:new{ w=content_w, h=body_h }, scroll_bar_width=0 }`, set `show_parent = menu`, call `initState()`, then nil `_v_scroll_bar` to avoid drawing artifacts from the zero-width bar.
 
 ## Lua constraints (5.1)
 - No trailing commas in function call arguments (`f(1, 2,)` → syntax error)

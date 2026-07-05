@@ -21,16 +21,17 @@ return function(h)
     local r1_h = Screen:scaleBySize(20)
     local r2_h = Screen:scaleBySize(95)
 
-    local row1 = OverlapGroup:new {
-        dimen = Geom:new { w = acw, h = r1_h },
-        TextWidget:new {
-            text = _("Now"),
-            face = Font:getFace("smallinfofont", 16),
-            fgcolor = Blitbuffer.COLOR_DIM_GRAY,
-        },
-    }
-    table.insert(hero, row1)
-    table.insert(hero, VerticalSpan:new { width = Screen:scaleBySize(2) })
+    if not h.menu_ref then
+        table.insert(hero, OverlapGroup:new {
+            dimen = Geom:new { w = acw, h = r1_h },
+            TextWidget:new {
+                text = _("Now"),
+                face = Font:getFace("smallinfofont", 16),
+                fgcolor = Blitbuffer.COLOR_DIM_GRAY,
+            },
+        })
+        table.insert(hero, VerticalSpan:new { width = Screen:scaleBySize(2) })
+    end
 
     local big = HorizontalGroup:new { align = "center" }
     table.insert(big, TextWidget:new {
@@ -79,11 +80,16 @@ return function(h)
         })
     end
 
+    -- Measure actual content height for correct OverlapGroup dimen
+    local actual_h = math.max(r2_h,
+        left_side:getSize() and left_side:getSize().h or 0,
+        rc:getSize() and rc:getSize().h or 0)
+
     table.insert(hero, OverlapGroup:new {
-        dimen = Geom:new { w = acw, h = r2_h },
+        dimen = Geom:new { w = acw, h = actual_h },
         left_side,
         RightContainer:new {
-            dimen = Geom:new { w = acw, h = r2_h },
+            dimen = Geom:new { w = acw, h = actual_h },
             rc,
         },
     })

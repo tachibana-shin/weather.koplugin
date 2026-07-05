@@ -9,10 +9,11 @@ local HorizontalSpan = require("ui/widget/horizontalspan")
 local ImageWidget = require("ui/widget/imagewidget")
 local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local ScrollableContainer = require("ui/widget/container/scrollablecontainer")
 local TextWidget = require("ui/widget/textwidget")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
-local _ = require("i18n")
+local _ = require("weather_i18n")
 
 local Screen = Device.screen
 
@@ -28,17 +29,13 @@ return function(h)
     local self, data, acw = h.self, h.data, h.acw
     if not (data.daily and #data.daily > 0) then return end
 
+    local sbw = h.menu_ref and Screen:scaleBySize(3) or 0
+    local cw = acw - 3 * sbw  -- account for scrollbar width in Zen UI
     local md = math.min(#data.daily, 10)
-    local list = VerticalGroup:new { align = "left" }
-    table.insert(list, TextWidget:new {
-        text = _("10-Day Forecast"),
-        face = Font:getFace("infofont", 22), bold = true,
-    })
-    table.insert(list, VerticalSpan:new { width = Screen:scaleBySize(6) })
-    local c1 = acw * 0.18
-    local c2 = acw * 0.18
-    local c3 = acw * 0.22
-    local c4 = acw * 0.42
+    local c1 = cw * 0.18
+    local c2 = cw * 0.18
+    local c3 = cw * 0.22
+    local c4 = cw * 0.42
     local gmin, gmax = math.huge, -math.huge
     for i = 1, md do
         local d = data.daily[i]
@@ -47,6 +44,7 @@ return function(h)
     end
     local grange = gmax - gmin
     if grange == 0 then grange = 1 end
+    local rows = VerticalGroup:new { align = "left" }
     for i = 1, md do
         local d = data.daily[i]
         local row = HorizontalGroup:new { align = "center" }
@@ -124,15 +122,36 @@ return function(h)
                 },
             },
         })
-        table.insert(list, row)
+        table.insert(rows, row)
         if i < md then
-            table.insert(list, VerticalSpan:new { width = Screen:scaleBySize(4) })
-            table.insert(list, LineWidget:new {
-                dimen = Geom:new { w = acw, h = 1 },
+            table.insert(rows, VerticalSpan:new { width = Screen:scaleBySize(4) })
+            table.insert(rows, LineWidget:new {
+                dimen = Geom:new { w = cw, h = 1 },
                 background = h.gauges.rgb(230, 230, 230), style = "solid",
             })
-            table.insert(list, VerticalSpan:new { width = Screen:scaleBySize(4) })
+            table.insert(rows, VerticalSpan:new { width = Screen:scaleBySize(4) })
         end
+    end
+    local list = VerticalGroup:new { align = "left" }
+    table.insert(list, TextWidget:new {
+        text = _("10-Day Forecast"),
+        face = Font:getFace("infofont", 22), bold = true,
+    })
+    table.insert(list, VerticalSpan:new { width = Screen:scaleBySize(6) })
+    if h.menu_ref then
+        -- Zen UI home widget: scrollable with fixed height
+        local sc = ScrollableContainer:new {
+            dimen = Geom:new { w = acw, h = Screen:scaleBySize(220) },
+            scroll_bar_width = sbw,
+            swipe_full_view = false,
+        }
+        sc.show_parent = h.menu_ref
+        sc[1] = rows
+        if sc.initState then sc:initState() end
+        table.insert(list, sc)
+    else
+        -- WeatherView: full height, no scroll needed
+        table.insert(list, rows)
     end
     self:add(h.card(list))
 end

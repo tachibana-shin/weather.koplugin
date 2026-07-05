@@ -22,6 +22,12 @@ function Weather:init()
         title = _("Open Weather"),
         general = true,
     })
+    Dispatcher:registerAction("weather_refresh", {
+        category = "none",
+        event = "WeatherRefresh",
+        title = _("Refresh Weather"),
+        general = true,
+    })
 end
 
 local broadcastEventOrigin = UIManager.broadcastEvent
@@ -36,12 +42,35 @@ function UIManager:broadcastEvent(event, ...)
 end
 
 function Weather:onZenUIReady()
-    if not _G.__ZEN_UI_REGISTER_STATUS_ITEM then return end
-    require("weather_statusline").registerZenUI()
+    if not _G.__ZEN_UI_REGISTER_STATUS_ITEM and not _G.__ZEN_UI_REGISTER_HOME_ITEM then return end
+    if _G.__ZEN_UI_REGISTER_STATUS_ITEM then
+        require("weather_statusline").registerZenUI()
+    end
+    if _G.__ZEN_UI_REGISTER_HOME_ITEM then
+        require("zenui_cards").register()
+    end
 end
 
 function Weather:onWeatherOpen()
     self:openWeatherView()
+end
+
+function Weather:onWeatherRefresh()
+    local lat, lon = self:getCoords()
+    if not lat or not lon then
+        UIManager:show(InfoMessage:new {
+            text = _("Please set your location first in Weather settings."),
+        })
+        return
+    end
+    local WeatherView = require("weather_view")
+    UIManager:show(WeatherView:new {
+        lat = lat, lon = lon,
+        temp_unit = self:getTempUnit(),
+        forecast_days = self:getForecastDays(),
+        location_name = self:getLocationName(),
+        force_refresh = true,
+    })
 end
 
 function Weather:getCoords()
@@ -815,6 +844,10 @@ function Weather:addToMainMenu(menu_items)
             {
                 text = "\u{2600} " .. _("Open Weather"),
                 callback = function() self:openWeatherView() end,
+            },
+            {
+                text = "\u{F021} " .. _("Refresh"),
+                callback = function() self:onWeatherRefresh() end,
             },
             {
                 text = "\u{F013} " .. _("Settings"),
