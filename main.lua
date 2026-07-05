@@ -394,14 +394,16 @@ function Weather:showProviderSettings()
         title = _("Weather Provider"),
         buttons = {
             { {
-                text = (cur == "openmeteo" and "● " or "  ") .. "Open-Meteo",
+                text = (cur == "openmeteo" and "● " or "  ") .. "Open-Meteo"
+                    .. "\n" .. _("Free, no key needed, 7–14 days, AQI + pollen"),
                 callback = function()
                     config.set("weather_provider", "openmeteo")
                     UIManager:close(dialog)
                 end,
             } },
             { {
-                text = (cur == "weatherapi" and "● " or "  ") .. "WeatherAPI.com",
+                text = (cur == "weatherapi" and "● " or "  ") .. "WeatherAPI.com"
+                    .. "\n" .. _("Free tier, need API key, ≤14 days, AQI"),
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_weatherapi_key", "")
@@ -413,7 +415,8 @@ function Weather:showProviderSettings()
                 end,
             } },
             { {
-                text = (cur == "iqair" and "● " or "  ") .. "IQAir",
+                text = (cur == "iqair" and "● " or "  ") .. "IQAir"
+                    .. "\n" .. _("Free tier, need API key, current only, AQI"),
                 callback = function()
                     UIManager:close(dialog)
                     local key = config.get("weather_iqair_key", "")
@@ -421,6 +424,19 @@ function Weather:showProviderSettings()
                         self:validateAndSwitchIQAir(key)
                     else
                         self:promptIQAirKey()
+                    end
+                end,
+            } },
+            { {
+                text = (cur == "tomorrowio" and "● " or "  ") .. "Tomorrow.io"
+                    .. "\n" .. _("Free tier, need API key, 5 days, no AQI"),
+                callback = function()
+                    UIManager:close(dialog)
+                    local key = config.get("weather_tomorrowio_key", "")
+                    if key and key ~= "" then
+                        self:validateAndSwitchTomorrowIO(key)
+                    else
+                        self:promptTomorrowIOKey()
                     end
                 end,
             } },
@@ -536,6 +552,76 @@ function Weather:promptIQAirKey()
                     local key = input_dialog:getInputText()
                     UIManager:close(input_dialog)
                     self:validateAndSwitchIQAir(key)
+                end,
+            } },
+            { {
+                text = _("Cancel"),
+                callback = function()
+                    UIManager:close(input_dialog)
+                end,
+            } },
+        },
+    }
+    UIManager:show(input_dialog)
+end
+
+function Weather:validateAndSwitchTomorrowIO(key)
+    Trapper:wrap(function()
+        if not Trapper:info(_("Validating...")) then return end
+        local ok, http = pcall(require, "socket.http")
+        if not ok then
+            Trapper:clear()
+            UIManager:show(InfoMessage:new {
+                text = _("HTTP module not available"),
+            })
+            return
+        end
+        local url = "https://api.tomorrow.io/v4/weather/forecast"
+            .. "?location=21,105"
+            .. "&timesteps=1h"
+            .. "&units=metric"
+            .. "&apikey=" .. key
+        local body, code = http.request(url)
+        Trapper:clear()
+        if code == 200 and body then
+            local ok_json, JSON = pcall(require, "json")
+            if ok_json then
+                local ok_decode, data = pcall(JSON.decode, body)
+                if ok_decode and data then
+                    local msg = (data.message or ""):lower()
+                    if msg:match("api key") or msg:match("invalid") or msg:match("unauthorized") then
+                        UIManager:show(InfoMessage:new {
+                            text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+                        })
+                        return
+                    end
+                    config.set("weather_tomorrowio_key", key)
+                    config.set("weather_provider", "tomorrowio")
+                    UIManager:show(InfoMessage:new {
+                        text = _("Tomorrow.io key validated"),
+                    })
+                    return
+                end
+            end
+        end
+        UIManager:show(InfoMessage:new {
+            text = _("Invalid API key") .. " (" .. tostring(code) .. ")",
+        })
+    end)
+end
+
+function Weather:promptTomorrowIOKey()
+    local input_dialog
+    input_dialog = InputDialog:new {
+        title = _("Tomorrow.io API Key"),
+        input = "",
+        buttons = {
+            { {
+                text = _("Save"),
+                callback = function()
+                    local key = input_dialog:getInputText()
+                    UIManager:close(input_dialog)
+                    self:validateAndSwitchTomorrowIO(key)
                 end,
             } },
             { {

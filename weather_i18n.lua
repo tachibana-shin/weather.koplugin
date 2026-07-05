@@ -50,7 +50,7 @@ t.vi = {
     ["High:"] = "Cao:",
     ["Low:"] = "Thấp:",
     ["Hourly Details"] = "Chi tiết theo giờ",
-    ["Designed from Google Weather"] = "Thiết kế từ Google Weather",
+    ["Powered by %s"] = "Dữ liệu từ %s",
     ["Heat Index"] = "Chỉ số nhiệt",
     ["Wind Chill"] = "Gió lạnh",
     ["Rain will continue in the next few hours"] = "Sẽ tiếp tục mưa trong vài giờ tới",
@@ -163,6 +163,13 @@ t.vi = {
     ["IQAir API Key"] = "Khóa API IQAir",
     ["IQAir key validated"] = "Khóa API IQAir hợp lệ",
     ["IQAir API key not set"] = "Chưa đặt khóa API IQAir",
+    ["Tomorrow.io API Key"] = "Khóa API Tomorrow.io",
+    ["Tomorrow.io key validated"] = "Khóa API Tomorrow.io hợp lệ",
+    ["Tomorrow.io API key not set"] = "Chưa đặt khóa API Tomorrow.io",
+    ["Free, no key needed, 7–14 days, AQI + pollen"] = "Miễn phí, không cần key, 7–14 ngày, AQI + phấn hoa",
+    ["Free tier, need API key, ≤14 days, AQI"] = "Gói miễn phí, cần API key, ≤14 ngày, AQI",
+    ["Free tier, need API key, current only, AQI"] = "Gói miễn phí, cần API key, chỉ hiện tại, AQI",
+    ["Free tier, need API key, 5 days, no AQI"] = "Gói miễn phí, cần API key, 5 ngày, không AQI",
 }
 
 t.zh = {
@@ -217,7 +224,7 @@ t.zh = {
     ["High:"] = "高:",
     ["Low:"] = "低:",
     ["Hourly Details"] = "小时详情",
-    ["Designed from Google Weather"] = "设计源自 Google 天气",
+    ["Powered by %s"] = "数据来源 %s",
     ["Heat Index"] = "热指数",
     ["Wind Chill"] = "风寒指数",
     ["Rain will continue in the next few hours"] = "未来几小时将持续降雨",
@@ -257,6 +264,13 @@ t.zh = {
     ["IQAir API Key"] = "IQAir API密钥",
     ["IQAir key validated"] = "IQAir密钥已验证",
     ["IQAir API key not set"] = "未设置IQAir密钥",
+    ["Tomorrow.io API Key"] = "Tomorrow.io API密钥",
+    ["Tomorrow.io key validated"] = "Tomorrow.io密钥已验证",
+    ["Tomorrow.io API key not set"] = "未设置Tomorrow.io密钥",
+    ["Free, no key needed, 7–14 days, AQI + pollen"] = "免费，无需密钥，7–14天，AQI + 花粉",
+    ["Free tier, need API key, ≤14 days, AQI"] = "免费版，需要API密钥，≤14天，AQI",
+    ["Free tier, need API key, current only, AQI"] = "免费版，需要API密钥，仅当前，AQI",
+    ["Free tier, need API key, 5 days, no AQI"] = "免费版，需要API密钥，5天，无AQI",
 }
 
 t.ja = {
@@ -311,7 +325,7 @@ t.ja = {
     ["High:"] = "高:",
     ["Low:"] = "低:",
     ["Hourly Details"] = "時間別詳細",
-    ["Designed from Google Weather"] = "Google天気からデザイン",
+    ["Powered by %s"] = "データ提供 %s",
     ["Heat Index"] = "暑さ指数",
     ["Wind Chill"] = "体感温度",
     ["Rain will continue in the next few hours"] = "今後数時間は雨が続く",
@@ -351,6 +365,13 @@ t.ja = {
     ["IQAir API Key"] = "IQAir APIキー",
     ["IQAir key validated"] = "IQAirキーが確認されました",
     ["IQAir API key not set"] = "IQAirキーが設定されていません",
+    ["Tomorrow.io API Key"] = "Tomorrow.io APIキー",
+    ["Tomorrow.io key validated"] = "Tomorrow.ioキーが確認されました",
+    ["Tomorrow.io API key not set"] = "Tomorrow.ioキーが設定されていません",
+    ["Free, no key needed, 7–14 days, AQI + pollen"] = "無料、キー不要、7〜14日、AQI + 花粉",
+    ["Free tier, need API key, ≤14 days, AQI"] = "無料枠、APIキー必要、最大14日、AQI",
+    ["Free tier, need API key, current only, AQI"] = "無料枠、APIキー必要、現在のみ、AQI",
+    ["Free tier, need API key, 5 days, no AQI"] = "無料枠、APIキー必要、5日間、AQIなし",
 }
 
 local function lookup(key)

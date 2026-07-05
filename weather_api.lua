@@ -166,7 +166,44 @@ local PROVIDERS = {
     openmeteo = "providers/openmeteo",
     weatherapi = "providers/weatherapi",
     iqair = "providers/iqair",
+    tomorrowio = "providers/tomorrowio",
 }
+
+local function fetch_openmeteo_aqi(lat, lon)
+    local ok, http = pcall(require, "socket.http")
+    if not ok then return nil end
+    local params = {
+        "european_aqi",
+        "european_aqi_pm2_5", "european_aqi_pm10",
+        "european_aqi_nitrogen_dioxide",
+        "european_aqi_ozone", "european_aqi_sulphur_dioxide",
+        "pm2_5", "pm10", "nitrogen_dioxide", "ozone", "sulphur_dioxide",
+        "carbon_monoxide",
+    }
+    local url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+        .. "?latitude=" .. tostring(lat)
+        .. "&longitude=" .. tostring(lon)
+        .. "&current=" .. table.concat(params, ",")
+    local body, code = http.request(url)
+    if code ~= 200 or not body or #body == 0 then return nil end
+    local ok_json, JSON = pcall(require, "json")
+    if not ok_json then return nil end
+    local ok_decode, c = pcall(JSON.decode, body)
+    if not ok_decode or not c or not c.current then return nil end
+    c = c.current
+    return {
+        aqi = c.european_aqi,
+        components = {
+            pm2_5 = { aqi = c.european_aqi_pm2_5, raw = c.pm2_5 },
+            pm10  = { aqi = c.european_aqi_pm10,  raw = c.pm10 },
+            no2   = { aqi = c.european_aqi_nitrogen_dioxide, raw = c.nitrogen_dioxide },
+            o3    = { aqi = c.european_aqi_ozone, raw = c.ozone },
+            so2   = { aqi = c.european_aqi_sulphur_dioxide, raw = c.sulphur_dioxide },
+        },
+        pollutants = { co = c.carbon_monoxide },
+        pollen = {},
+    }
+end
 
 function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
     local provider_name = config.get("weather_provider", "openmeteo")
@@ -178,7 +215,11 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
     if not ok then
         return nil, "Failed to load provider: " .. tostring(provider_name)
     end
-    return provider.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+    local result, err = provider.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+    if result and (not result.air_quality or not result.air_quality.aqi) then
+        result.air_quality = fetch_openmeteo_aqi(lat, lon)
+    end
+    return result, err
 end
 
 return M
