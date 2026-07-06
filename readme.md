@@ -5,9 +5,9 @@ Full-screen weather widget for KOReader.
 Runs standalone as a KOReader plugin (open via menu or gesture). When [Zen UI](https://github.com/AnthonyGress/zen_ui.koplugin) is installed, it additionally registers 8 home screen cards and a status line item.
 
 ## Screenshots
-<img width="426" height="708" alt="image" src="https://github.com/user-attachments/assets/65689b3a-57a8-4164-aa10-71719a049322" />
-<img width="426" height="708" alt="image" src="https://github.com/user-attachments/assets/d2036068-25d6-4f5f-b5b7-50c9c4b0aafe" />
-<img width="426" height="705" alt="image" src="https://github.com/user-attachments/assets/651c6b1c-66a5-44fa-b223-0cdd80ace881" />
+<img width="425" height="707" alt="image" src="https://github.com/user-attachments/assets/cf24f5b4-65fa-49e3-b0d7-a76f4cb3746a" />
+<img width="425" height="708" alt="image" src="https://github.com/user-attachments/assets/f5b835aa-d642-4b70-b166-bc2eaa6e69a3" />
+<img width="425" height="708" alt="image" src="https://github.com/user-attachments/assets/7732b631-bfbb-4c2d-90ad-08b76d7efb36" />
 
 <!-- TODO: add screenshots -->
 
