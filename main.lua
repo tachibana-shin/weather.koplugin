@@ -5,6 +5,7 @@ local Trapper = require("ui/trapper")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local _ = require("weather_i18n")
+local api = require("weather_api")
 local config = require("weather_config")
 local Dispatcher = require("dispatcher")
 
@@ -28,6 +29,7 @@ function Weather:init()
         title = _("Refresh Weather"),
         general = true,
     })
+    self:scheduleRefresh()
 end
 
 local broadcastEventOrigin = UIManager.broadcastEvent
@@ -71,6 +73,58 @@ function Weather:onWeatherRefresh()
         location_name = self:getLocationName(),
         force_refresh = true,
     })
+end
+
+function Weather:onSuspend()
+    self:unscheduleRefresh()
+end
+
+function Weather:onResume()
+    local interval = config.get("weather_refresh_interval", 0)
+    if interval <= 0 then return end
+    local lat, lon = self:getCoords()
+    if not lat or not lon then
+        self:scheduleRefresh()
+        return
+    end
+    local age = api.cacheAge()
+    if not age or age >= interval * 60 then
+        -- Cache is stale, refresh soon after wake-up
+        UIManager:scheduleIn(5, self.onRefreshTimer, self)
+    else
+        self:scheduleRefresh()
+    end
+end
+
+function Weather:scheduleRefresh()
+    local interval = config.get("weather_refresh_interval", 0)
+    if interval and interval > 0 then
+        UIManager:scheduleIn(interval * 60, self.onRefreshTimer, self)
+    end
+end
+
+function Weather:unscheduleRefresh()
+    UIManager:unschedule(self.onRefreshTimer)
+end
+
+function Weather:onRefreshTimer()
+    local interval = config.get("weather_refresh_interval", 0)
+    if interval <= 0 then return end
+    local lat, lon = self:getCoords()
+    if not lat or not lon then
+        self:scheduleRefresh()
+        return
+    end
+    Trapper:wrap(function()
+        local data, err = api.fetch(lat, lon, self:getTempUnit(),
+            self:getForecastDays(), config.get("weather_wind_unit", "kmh"),
+            config.get("weather_precip_unit", "mm"))
+        if data then
+            api.cacheSave(data)
+            require("weather_statusline").updateCache(data, self:getTempUnit())
+        end
+        self:scheduleRefresh()
+    end)
 end
 
 function Weather:getCoords()

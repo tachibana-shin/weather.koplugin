@@ -44,7 +44,6 @@ function WeatherView:init()
     local sh = Screen:getHeight()
     self.dimen = Geom:new { x = 0, y = 0, w = sw, h = sh }
     self.covers_fullscreen = true
-    self.refresh_interval = config.get("weather_refresh_interval", 0)
     if Device:hasKeys() then
         self.key_events.Close = { { Input.group.Back } }
     end
@@ -67,21 +66,6 @@ function WeatherView:init()
     end
 end
 
-function WeatherView:scheduleRefresh()
-    if self.refresh_interval and self.refresh_interval > 0 then
-        UIManager:scheduleIn(self.refresh_interval * 60, self.onRefreshTimer, self)
-    end
-end
-
-function WeatherView:onRefreshTimer()
-    local Trapper = require("ui/trapper")
-    Trapper:wrap(function()
-        if not Trapper:info(_("Refreshing...")) then return end
-        self:fetchWeather()
-        Trapper:clear()
-    end)
-end
-
 function WeatherView:onRefresh()
     local Trapper = require("ui/trapper")
     Trapper:wrap(function()
@@ -89,10 +73,6 @@ function WeatherView:onRefresh()
         self:fetchWeather()
         Trapper:clear()
     end)
-end
-
-function WeatherView:unscheduleRefresh()
-    UIManager:unschedule(self.onRefreshTimer)
 end
 
 function WeatherView:showLoading()
@@ -251,7 +231,6 @@ function WeatherView:fetchWeather()
             self:displayError(err or _("Could not fetch weather data"))
         end
     end
-    self:scheduleRefresh()
 end
 
 function WeatherView:displayError(msg)
@@ -424,7 +403,6 @@ function WeatherView:onSwipe(_, ges_ev)
 end
 
 function WeatherView:onClose()
-    self:unscheduleRefresh()
     UIManager:close(self)
     UIManager:setDirty(nil, "full")
     if self.close_callback then

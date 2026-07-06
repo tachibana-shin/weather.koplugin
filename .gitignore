@@ -47,3 +47,6 @@ node_modules/
 package-lock.json
 
 resources/google-weather/
+
+/weather.koplugin
+/weather.koplugin.zip
