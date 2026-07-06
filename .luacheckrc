@@ -11,3 +11,4 @@ files["**/weather_i18n.lua"] = {
 files["**/weather_info.lua"] = {
     max_line_length = false
 }
+exclude_files = { "node_modules/**/*" }
