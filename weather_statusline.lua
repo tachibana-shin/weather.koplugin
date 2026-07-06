@@ -465,19 +465,6 @@ function M.showPreview()
     UIManager:show(InfoMessage:new { text = text })
 end
 
-local FIELD_ICONS = {
-    temperature = "mostly_sunny",
-    feels_like = "mostly_clear_day",
-    high_low = "mostly_clear_day",
-    humidity = "drizzle",
-    wind = "windy",
-    uv_index = "sunny",
-    pressure = "cloudy",
-    precip_chance = "rain_with_cloudy",
-    sunrise_set = "clear_day",
-    dew_point = "icy",
-}
-
 local LABEL_ICONS = {
     icon = "\u{2600}",
     temperature = "\u{26C5}",
@@ -515,18 +502,11 @@ local function registerZenUI()
             local vals = compute()
             local val = vals[key]
             if not val or val == "" then return nil end
-            if key == "icon" then
-                local icon_name = cache_data and cache_data.current and cache_data.current.weather_icon
-                if icon_name then
-                    return svg_path(icon_name), "", nil, true
-                end
-                return nil
-            end
-            local icon_name = FIELD_ICONS[key]
+            local icon_name = cache_data and cache_data.current and cache_data.current.weather_icon
             if icon_name then
-                return svg_path(icon_name), val, nil, true
+                return svg_path(icon_name), key == "icon" and "" or val, nil, true
             end
-            return "", val, nil
+            return "", key == "icon" and "" or val, nil
         end, { label = label, side = "right", callback = tap_cb })
     end
 
