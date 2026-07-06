@@ -16,6 +16,7 @@ KOReader plugin that displays a full-screen weather UI (Open-Meteo API). Self-co
 
 ## KOReader widget quirks (critical)
 - **`FrameContainer:getSize()` IGNORES `width`/`height`/`dimen`** — always calculates from `self[1]:getSize()` + padding + borders. Use `CenterContainer{ dimen = Geom:new{ w = ..., h = ... } }` when fixed size is needed (inherits `WidgetContainer:getSize()` which checks `self.dimen` first).
+- **Zen UI home widgets**: DO NOT override `widget:handleEvent()` for tap handling — it catches all gestures everywhere. Use `widget.ges_events` with `GestureRange:new{ ges = "tap", range = function() return widget.dimen end }` + `function widget:onTapEventName()` instead. This checks the tap position against the widget's painted bounds at match time.
 - **`ScrollableContainer`** subtracts `3 * scroll_bar_width` from viewport when vertical scrollbar appears. Inner content width must be `sw - sbw` to prevent horizontal scrollbar.
 - **`FitWidthContainer`** (custom, `weatherview.lua:36-45`): `InputContainer:extend` that reports fixed `fw` width but delegates height to child. Use when content must not overflow scrollable viewport.
 - **`LeftContainer`** left-aligns child within `dimen` (no horizontal shift). `RightContainer` right-aligns. Both vertically center the child.

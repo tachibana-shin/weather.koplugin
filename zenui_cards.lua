@@ -4,6 +4,7 @@ local Device = require("device")
 local Font = require("ui/font")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local TextWidget = require("ui/widget/textwidget")
 local UIManager = require("ui/uimanager")
@@ -143,14 +144,19 @@ local function register()
             local widget = InputContainer:new {
                 dimen = Geom:new { w = ctx.width, h = ctx.height },
             }
-            function widget:handleEvent(event)
-                if event.handler == "onGesture" and event.args and event.args[1] and event.args[1].ges then
-                    local ges = event.args[1]
-                    if ges.ges ~= "tap" then return false end
-                    openWeather()
-                    return true
-                end
-                return InputContainer.handleEvent(self, event)
+            widget.ges_events = {
+                TapWeather = {
+                    GestureRange:new {
+                        ges = "tap",
+                        range = function() return widget.dimen end,
+                    },
+                    event = "TapWeather",
+                    args = {},
+                },
+            }
+            function widget:onTapWeather()
+                openWeather()
+                return true
             end
 
             local content = renderCard(opts.mod, ctx, data)
