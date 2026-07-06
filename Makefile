@@ -13,7 +13,7 @@ icons: $(ICON_DST) $(WEATHER_ICONS_DIR)
 	cp $(ICON_SRC)/*.svg $(ICON_DST)/
 
 $(WEATHER_ICONS_DIR):
-	git clone $(WEATHER_ICONS_REPO) $(WEATHER_ICONS_DIR)	
+	git submodule update --init $(WEATHER_ICONS_DIR)
 
 $(ICON_DST):
 	mkdir -p $(ICON_DST)
