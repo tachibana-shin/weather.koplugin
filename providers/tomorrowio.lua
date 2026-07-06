@@ -235,7 +235,7 @@ local function rain_prediction(hourly)
     return text, is_snow
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit)
     temp_unit = temp_unit or "celsius"
     forecast_days = forecast_days or 7
     wind_unit = wind_unit or "kmh"

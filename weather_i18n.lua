@@ -55,7 +55,6 @@ t.vi = {
     ["Wind Chill"] = "Gió lạnh",
     ["Rain will continue in the next few hours"] = "Sẽ tiếp tục mưa trong vài giờ tới",
     ["Snow will continue in the next few hours"] = "Sẽ tiếp tục tuyết trong vài giờ tới",
-    Rain = "Mưa",
     Snow = "Tuyết",
     ["will stop soon"] = "sẽ tạnh sớm",
     ["will continue throughout the day"] = "sẽ tiếp tục suốt ngày",

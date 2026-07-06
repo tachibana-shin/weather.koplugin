@@ -132,7 +132,6 @@ return function(h)
 
     local has_comp = #sorted > 0
     local has_poll = false
-    local has_pol = false
     local any_detail = false
 
     if has_comp then
@@ -243,7 +242,6 @@ return function(h)
         end
     end
     if #pol_sorted > 0 then
-        has_pol = true
         any_detail = true
         if not has_comp and not has_poll then
             table.insert(body, VerticalSpan:new { width = S(6) })

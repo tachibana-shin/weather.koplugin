@@ -198,8 +198,8 @@ return function(h)
         local cw = Screen:scaleBySize(64)
         local ch = sh - 2 * pad
         local gs = math.floor(ch * 0.6)
-        local svg = gauges.uvGaugeSVG(uv_ratio, r, g, b)
-        local bb = gauges.renderSVGFromString(svg, gs, gs)
+        local svg_str = gauges.uvGaugeSVG(uv_ratio, r, g, b)
+        local bb = gauges.renderSVGFromString(svg_str, gs, gs)
         local gx = math.floor((cw - gs) / 2)
         local gy = math.floor((ch - gs) / 2)
         local ri = CenterContainer:new {
@@ -248,8 +248,8 @@ return function(h)
         local ch = sh - 2 * pad
         local gs = math.floor(ch * 0.6)
         local pr = math.max(0, math.min(1, (cur.pressure - 940) / 120))
-        local svg = gauges.pressureGaugeSVG(pr, 66, 133, 244)
-        local bb = gauges.renderSVGFromString(svg, gs, gs)
+        local p_svg = gauges.pressureGaugeSVG(pr, 66, 133, 244)
+        local bb = gauges.renderSVGFromString(p_svg, gs, gs)
         local gx = math.floor((cw - gs) / 2)
         local gy = math.floor((ch - gs) / 2)
         local ri = CenterContainer:new {

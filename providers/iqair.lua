@@ -101,7 +101,7 @@ local function wind_direction_label(degrees)
     return WIND_DIRS[index]
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+function M.fetch(lat, lon, temp_unit, _, wind_unit)
     temp_unit = temp_unit or "celsius"
     wind_unit = wind_unit or "kmh"
 
@@ -168,7 +168,6 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
 
     -- Temperature conversion (IQAir returns Celsius)
     local t = weather.tp
-    local feels = nil
     local hi = weather.heatIndex
     if temp_unit == "fahrenheit" then
         t = t and (t * 9/5 + 32) or nil

@@ -819,10 +819,11 @@ end
 
 function Weather:showProviderHelp()
     local text = _("Region recommendations:") .. "\n"
-        .. _("• Asia (SEA, East Asia): WeatherAPI.com or Tomorrow.io — best coverage/accuracy per user experience. Open-Meteo (ECMWF) also good for tropical rainfall.") .. "\n"
+        .. _("• Asia (SEA, East Asia): WeatherAPI.com or Tomorrow.io") .. "\n"
+        .. _("  — best coverage/accuracy per user experience. Open-Meteo also good for tropical rainfall.") .. "\n"
         .. _("• Europe: Open-Meteo (uses European national models) or WeatherAPI.com.") .. "\n"
         .. _("• North America: All providers work well.") .. "\n"
-        .. _("• Global: WeatherAPI.com (most free calls: 1M/month) or Open-Meteo (free, no key, 10K calls/day).") .. "\n"
+        .. _("• Global: WeatherAPI.com (1M calls/month) or Open-Meteo (free, no key, 10K calls/day).") .. "\n"
         .. _("Provider overview:") .. "\n"
         .. _("• Open-Meteo: Free, no key, ECMWF data, 16 days, AQI/pollen. Best for hobby, no-registration.") .. "\n"
         .. _("• WeatherAPI.com: 1M calls/month free, 14 days, AQI, strong Asian coverage (IBM Weather).") .. "\n"

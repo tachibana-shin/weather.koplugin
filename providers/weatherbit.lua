@@ -165,7 +165,7 @@ local function convert_temp(c, temp_unit)
     return c
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit)
     temp_unit = temp_unit or "celsius"
     forecast_days = forecast_days or 7
     wind_unit = wind_unit or "kmh"
@@ -338,7 +338,8 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
         if ok_hd and hourly_data and hourly_data.data and #hourly_data.data > 0 then
             result.hourly = {}
             local current_hour = os.date("*t", os.time())
-            local current_ts = os.time { year = current_hour.year, month = current_hour.month, day = current_hour.day, hour = current_hour.hour }
+            local current_ts = os.time { year = current_hour.year, month = current_hour.month,
+                day = current_hour.day, hour = current_hour.hour, min = 0 }
 
             for _, h in ipairs(hourly_data.data) do
                 local ts_str = h.timestamp_local or ""
@@ -347,7 +348,8 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
                     year, month, day, hour = ts_str:match("(%d%d%d%d)-(%d%d)-(%d%d) (%d%d)")
                 end
                 if year then
-                    local h_ts = os.time { year = tonumber(year), month = tonumber(month), day = tonumber(day), hour = tonumber(hour) }
+                    local h_ts = os.time { year = tonumber(year), month = tonumber(month),
+                        day = tonumber(day), hour = tonumber(hour), min = 0 }
                     if h_ts < current_ts then goto continue_h end
                 end
 

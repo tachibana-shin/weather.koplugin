@@ -57,17 +57,6 @@ local WMO_MAP = {
     ["thunder-hail-night"] = 99,
 }
 
-local NIGHT_ICON_MAP = {
-    ["clear-day"] = "clear_night",
-    ["partly-cloudy-day"] = "partly_cloudy_night",
-    ["snow-showers-day"] = "snow-showers-night",
-    ["thunder-showers-day"] = "thunder-showers-night",
-    ["rain-snow-showers-day"] = "rain-snow-showers-night",
-    ["freezing-rain-showers-day"] = "freezing-rain-showers-night",
-    ["hail-day"] = "hail-night",
-    ["thunder-hail-day"] = "thunder-hail-night",
-}
-
 local function get_icon(icon_name)
     return VISUALCROSSING_ICONS[icon_name] or "cloudy"
 end
@@ -137,13 +126,11 @@ local function rain_prediction(hourly)
     if not hourly or #hourly == 0 then return nil end
     local count = 0
     local last_time = nil
-    local is_snow = false
     local all_light = true
     for __, h in ipairs(hourly) do
         if RAIN_CODES[h.weather_code] or SNOW_CODES[h.weather_code] then
             count = count + 1
             last_time = h.time
-            if SNOW_CODES[h.weather_code] then is_snow = true end
             if not is_light_precip(h.weather_code) then
                 all_light = false
             end
@@ -167,7 +154,7 @@ local function rain_prediction(hourly)
     return nil
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit)
     temp_unit = temp_unit or "celsius"
     forecast_days = forecast_days or 7
     wind_unit = wind_unit or "kmh"

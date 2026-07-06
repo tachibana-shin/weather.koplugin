@@ -9,13 +9,10 @@ local FrameContainer = require("ui/widget/container/framecontainer")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
-local HorizontalSpan = require("ui/widget/horizontalspan")
 local IconButton = require("ui/widget/iconbutton")
-local ImageWidget = require("ui/widget/imagewidget")
 local InfoMessage = require("ui/widget/infomessage")
 local Input = Device.input
 local InputDialog = require("ui/widget/inputdialog")
-local OverlapGroup = require("ui/widget/overlapgroup")
 local Screen = Device.screen
 local ScrollableContainer = require("ui/widget/container/scrollablecontainer")
 local Size = require("ui/size")
@@ -29,8 +26,6 @@ local api = require("weather_api")
 local _ = require("weather_i18n")
 
 local gauges = require("weather_gauges")
-
-local plugin_dir = (debug.getinfo(1, "S").source or ""):match("@(.*/)") or ""
 
 local gap = Screen:scaleBySize(8)
 
@@ -240,7 +235,9 @@ function WeatherView:fetchWeather()
         self:displayError(_("Location not set"))
         return
     end
-    local data, err = api.fetch(self.lat, self.lon, self.temp_unit, self.forecast_days, config.get("weather_wind_unit", "kmh"), config.get("weather_precip_unit", "mm"))
+    local wind_unit = config.get("weather_wind_unit", "kmh")
+    local precip_unit = config.get("weather_precip_unit", "mm")
+    local data, err = api.fetch(self.lat, self.lon, self.temp_unit, self.forecast_days, wind_unit, precip_unit)
     if data then
         api.cacheSave(data)
         self:displayWeather(data, false)

@@ -247,7 +247,7 @@ local function parse_hour_time(time_str)
     return h
 end
 
-function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
+function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit)
     temp_unit = temp_unit or "celsius"
     forecast_days = forecast_days or 7
     wind_unit = wind_unit or "kmh"
@@ -300,8 +300,8 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
 
     local current = data.current
     if current then
-        local code = current.condition and current.condition.code
-        local icon_name = code and WEATHERAPI_ICONS[code] or "cloudy"
+        local w_code = current.condition and current.condition.code
+        local icon_name = w_code and WEATHERAPI_ICONS[w_code] or "cloudy"
         local cond_text = current.condition and current.condition.text or "?"
         if not current.is_day or current.is_day == 0 then
             icon_name = night_icon(icon_name)
@@ -376,8 +376,8 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
             local day = day_data.day
             local astro = day_data.astro
             local cond = day.condition
-            local code = cond and cond.code
-            local icon_name = code and WEATHERAPI_ICONS[code] or "cloudy"
+            local day_code = cond and cond.code
+            local icon_name = day_code and WEATHERAPI_ICONS[day_code] or "cloudy"
             local cond_text = cond and cond.text or "?"
 
             local parts = {}
@@ -447,10 +447,11 @@ function M.fetch(lat, lon, temp_unit, forecast_days, wind_unit, precip_unit)
 
                     -- Only include hours from now onward
                     if day_idx == 1 then
-                        local now_ts = os.time()
-                        local current_hour = os.date("*t", now_ts)
+                        local current_hour = os.date("*t")
                         local h_ts = os.time { year = parts[1], month = parts[2], day = parts[3], hour = h_hour or 0 }
-                        if h_ts < os.time { year = current_hour.year, month = current_hour.month, day = current_hour.day, hour = current_hour.hour } then
+                        local now_ts = os.time { year = current_hour.year, month = current_hour.month,
+                            day = current_hour.day, hour = current_hour.hour }
+                        if h_ts < now_ts then
                             goto continue
                         end
                     end

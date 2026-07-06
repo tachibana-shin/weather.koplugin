@@ -11,6 +11,7 @@ local plugin_dir = (debug.getinfo(1, "S").source or ""):match("@(.*/)") or ""
 
 local cache_data = nil
 local cache_temp_unit = "celsius"
+local M = {}
 
 local ALL_FIELDS = {
     { key = "icon",          name = _("Icon"),           def_short = true,  def_long = true },
@@ -209,9 +210,8 @@ local function getLong()
 end
 
 local _dialog_ref = nil
-local showFieldSettings, showPreview
 
-local function showSettings()
+function M.showSettings()
     local function buildDialog()
         local buttons = {}
 
@@ -231,7 +231,7 @@ local function showSettings()
                                 config.set("weather_statusline_separator", dlg:getInputText())
                                 UIManager:close(dlg)
                                 UIManager:close(_dialog_ref)
-                                showSettings()
+                                M.showSettings()
                             end,
                         },
                         {
@@ -250,22 +250,25 @@ local function showSettings()
             text = _("Short Fields") .. " (" .. short_count .. "/" .. #ALL_FIELDS .. ")",
             callback = function()
                 UIManager:close(_dialog_ref)
-                showFieldSettings("short")
+                M.showFieldSettings("short")
             end,
         } })
         table.insert(buttons, { {
             text = _("Long Fields") .. " (" .. long_count .. "/" .. #ALL_FIELDS .. ")",
             callback = function()
                 UIManager:close(_dialog_ref)
-                showFieldSettings("long")
+                M.showFieldSettings("long")
             end,
         } })
 
+        local units_text = _("Units") .. " · " .. api.windUnitLabel()
+            .. " / " .. config.get("weather_pressure_unit", "hPa")
+            .. " / " .. config.get("weather_precip_unit", "mm")
         table.insert(buttons, { {
-            text = _("Units") .. " · " .. api.windUnitLabel() .. " / " .. config.get("weather_pressure_unit", "hPa") .. " / " .. config.get("weather_precip_unit", "mm"),
+            text = units_text,
             callback = function()
                 UIManager:close(_dialog_ref)
-                showUnitsDialog()
+                M.showUnitsDialog()
             end,
         } })
 
@@ -278,14 +281,14 @@ local function showSettings()
                 config.delete("weather_statusline_long_fields")
                 config.delete("weather_statusline_separator")
                 UIManager:close(_dialog_ref)
-                showSettings()
+                M.showSettings()
             end,
         } })
 
         table.insert(buttons, { {
             text = _("Preview"),
             keep_menu_open = true,
-            callback = function() showPreview() end,
+            callback = function() M.showPreview() end,
         } })
 
         table.insert(buttons, { {
@@ -302,96 +305,15 @@ local function showSettings()
     buildDialog()
 end
 
-showFieldSettings = function(name)
-    local order = getOrder(name)
-    local toggles = getToggles(name)
-    local name_upper = name == "short" and _("Short") or _("Long")
-
-    local function buildFieldDialog()
-        local buttons = {}
-        for i, key in ipairs(order) do
-            local field
-            for _, f in ipairs(ALL_FIELDS) do
-                if f.key == key then
-                    field = f; break
-                end
-            end
-            if not field then goto continue end
-            local checked = toggles[key]
-            local row = {
-                {
-                    text = (checked and "☑" or "☐") .. " " .. field.name,
-                    callback = function()
-                        toggles[key] = not toggles[key]
-                        saveToggles(name, toggles)
-                        UIManager:close(_dialog_ref)
-                        showFieldSettings(name)
-                    end,
-                },
-                {
-                    text = "▲",
-                    callback = function()
-                        if i > 1 then
-                            order[i], order[i - 1] = order[i - 1], order[i]
-                            saveOrder(name, order)
-                            UIManager:close(_dialog_ref)
-                            showFieldSettings(name)
-                        end
-                    end,
-                },
-                {
-                    text = "▼",
-                    callback = function()
-                        if i < #order then
-                            order[i], order[i + 1] = order[i + 1], order[i]
-                            saveOrder(name, order)
-                            UIManager:close(_dialog_ref)
-                            showFieldSettings(name)
-                        end
-                    end,
-                },
-            }
-            table.insert(buttons, row)
-            ::continue::
-        end
-        table.insert(buttons, { {
-            text = _("Back"),
-            callback = function()
-                UIManager:close(_dialog_ref)
-                showSettings()
-            end,
-        } })
-        _dialog_ref = ButtonDialog:new {
-            title = name_upper .. " " .. _("Fields"),
-            buttons = buttons,
-        }
-        UIManager:show(_dialog_ref)
-    end
-    buildFieldDialog()
-end
-
-local function showUnitsDialog()
+function M.showUnitsDialog()
     local WIND_OPTS = { kmh = "km/h", ms = "m/s", mph = "mph", knots = "knots" }
     local PRESSURE_OPTS = { hPa = "hPa", inHg = "inHg", mmHg = "mmHg" }
     local PRECIP_OPTS = { mm = "mm", inch = _("inch") }
 
-    local function radioGroup(opts, cur_key, on_select)
-        local rows = {}
-        for k, label in pairs(opts) do
-            table.insert(rows, {
-                text = (cur_key == k and "● " or "  ") .. label,
-                callback = function()
-                    on_select(k)
-                end,
-            })
-        end
-        return rows
-    end
-
     local function saveAndBack(unit_type, value)
         config.set("weather_" .. unit_type .. "_unit", value)
         UIManager:close(_dialog_ref)
-        showUnitsDialog()
+        M.showUnitsDialog()
     end
 
     local cur_wind = config.get("weather_wind_unit", "kmh")
@@ -430,7 +352,7 @@ local function showUnitsDialog()
         text = _("Back"),
         callback = function()
             UIManager:close(_dialog_ref)
-            showSettings()
+            M.showSettings()
         end,
     } })
 
@@ -441,7 +363,75 @@ local function showUnitsDialog()
     UIManager:show(_dialog_ref)
 end
 
-showPreview = function()
+function M.showFieldSettings(name)
+    local order = getOrder(name)
+    local toggles = getToggles(name)
+    local name_upper = name == "short" and _("Short") or _("Long")
+
+    local function buildFieldDialog()
+        local buttons = {}
+        for i, key in ipairs(order) do
+            local field
+            for _, f in ipairs(ALL_FIELDS) do
+                if f.key == key then
+                    field = f; break
+                end
+            end
+            if not field then goto continue end
+            local checked = toggles[key]
+            local row = {
+                {
+                    text = (checked and "☑" or "☐") .. " " .. field.name,
+                    callback = function()
+                        toggles[key] = not toggles[key]
+                        saveToggles(name, toggles)
+                        UIManager:close(_dialog_ref)
+                        M.showFieldSettings(name)
+                    end,
+                },
+                {
+                    text = "▲",
+                    callback = function()
+                        if i > 1 then
+                            order[i], order[i - 1] = order[i - 1], order[i]
+                            saveOrder(name, order)
+                            UIManager:close(_dialog_ref)
+                            M.showFieldSettings(name)
+                        end
+                    end,
+                },
+                {
+                    text = "▼",
+                    callback = function()
+                        if i < #order then
+                            order[i], order[i + 1] = order[i + 1], order[i]
+                            saveOrder(name, order)
+                            UIManager:close(_dialog_ref)
+                            M.showFieldSettings(name)
+                        end
+                    end,
+                },
+            }
+            table.insert(buttons, row)
+            ::continue::
+        end
+        table.insert(buttons, { {
+            text = _("Back"),
+            callback = function()
+                UIManager:close(_dialog_ref)
+                M.showSettings()
+            end,
+        } })
+        _dialog_ref = ButtonDialog:new {
+            title = name_upper .. " " .. _("Fields"),
+            buttons = buttons,
+        }
+        UIManager:show(_dialog_ref)
+    end
+    buildFieldDialog()
+end
+
+function M.showPreview()
     if not cache_data then
         local lat = config.get("weather_latitude")
         local lon = config.get("weather_longitude")
@@ -556,7 +546,7 @@ end
 return {
     getShort = getShort,
     getLong = getLong,
-    showSettings = showSettings,
+    showSettings = M.showSettings,
     updateCache = updateCache,
     compute = compute,
     ALL_FIELDS = ALL_FIELDS,

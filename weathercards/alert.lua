@@ -16,7 +16,7 @@ local Screen = Device.screen
 
 -- Alert cards — extreme temperature + precipitation warnings
 local function addAlert(self, h, label, bg_color, icon_color, text_color, message)
-    local cw, acw, card_r, card_p, gauges = h.cw, h.acw, h.card_r, h.card_p, h.gauges
+    local cw, acw, card_r, card_p = h.cw, h.acw, h.card_r, h.card_p
     local cur = h.cur
     local is = Screen:scaleBySize(36)
     local ah = Screen:scaleBySize(60)

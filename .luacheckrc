@@ -1,6 +1,7 @@
 unused_secondaries = false
 ignore = {
-    '__'
+    '__',
+    'self',
 }
 
 files["**/weather_i18n.lua"] = {
