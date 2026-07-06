@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/tachibana-shin/weather.koplugin/compare/v1.0.0...v1.0.1) (2026-07-06)
+
+
+### Bug Fixes
+
+* fullwrap event in zen ui home ([551e5a8](https://github.com/tachibana-shin/weather.koplugin/commit/551e5a80ba15044eadfd1b360c8858aaa4280a4f))
+
 # 1.0.0 (2026-07-06)
 
 
