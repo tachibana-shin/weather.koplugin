@@ -1,0 +1,41 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    uses: ./.github/workflows/ci.yml
+  check_dev:
+    runs-on: ubuntu-22.04
+    outputs:
+      is_dev: ${{ steps.check.outputs.is_dev }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f .dev ]; then
+            echo "is_dev=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_dev=false" >> "$GITHUB_OUTPUT"
+          fi
+  release:
+    needs: [lint, check_dev]
+    if: needs.check_dev.outputs.is_dev == 'false'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install
+      - name: Build release zip
+        run: make release
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bunx semantic-release

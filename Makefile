@@ -5,7 +5,7 @@ ICON_DST := resources/google-weather/set-4
 
 PLUGIN_DIR := weather.koplugin
 
-.PHONY: all icons clean luacheck zip
+.PHONY: all icons clean luacheck release
 
 all: icons
 
@@ -21,7 +21,7 @@ $(ICON_DST):
 luacheck:
 	luacheck .
 
-zip: luacheck icons
+release: luacheck icons
 	rm -f $(PLUGIN_DIR).zip
 	mkdir -p $(PLUGIN_DIR)
 	cp *.lua $(PLUGIN_DIR)/
